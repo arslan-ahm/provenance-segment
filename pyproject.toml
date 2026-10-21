@@ -12,7 +12,7 @@ dependencies = [
     "numpy>=2.5.4",
     "pandas>=3.0.6",
     "pyarrow>=26.0.0",
-    "pydantic>=2.14.1",
+    "pydantic>=2.11",
     "pyyaml>=6.0.3",
     "rank-bm25>=0.2.2",
     "rich>=15.0.0",
@@ -39,7 +39,7 @@ report = [
     "matplotlib>=3.11.2",
 ]
 demo = [
-    "gradio==6.30.0",
+    "gradio[mcp,oauth]==6.30.0",
     "spaces>=0.51.3",
 ]
 
