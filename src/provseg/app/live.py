@@ -66,8 +66,8 @@ def featured(retrieval_rows: list[dict], questions: dict, n_answerable: int = 4,
 class ClaimChecker:
     """Wraps the run's NLI verifier; one check at a time so a small CPU host stays responsive."""
 
-    def __init__(self, model: str, entail_threshold: float, contradict_threshold: float, window_sentences: tuple[int, ...]):
-        self.verifier = NLIVerifier(model, entail_threshold, contradict_threshold, window_sentences)
+    def __init__(self, model: str, entail_threshold: float, contradict_threshold: float, window_sentences: tuple[int, ...], encoder=None):
+        self.verifier = NLIVerifier(model, entail_threshold, contradict_threshold, window_sentences, encoder=encoder)
         self._lock = threading.Semaphore(1)
 
     def check(self, claim: str, sources: list[Chunk], handles: dict[str, str], nli: bool = True) -> dict:
@@ -110,6 +110,20 @@ class ClaimChecker:
             "window_sentences": list(self.verifier.window_sentences),
         }
         return result
+
+
+def with_cpu_fallback(gpu_call, cpu_call) -> dict:
+    """Run ``gpu_call``; if the GPU cannot be had (ZeroGPU quota, no free device), run the same
+    check on CPU and record why, so the visitor still gets the verifier's answer."""
+    try:
+        return gpu_call()
+    except LiveError:
+        raise
+    except Exception as err:
+        r = cpu_call()
+        reason = getattr(err, "title", None) or type(err).__name__
+        r["fallback"] = f"Ran on CPU because the GPU was not available ({reason}: {err})."
+        return r
 
 
 def handles_for(instance_ids: list[str]) -> dict[str, str]:

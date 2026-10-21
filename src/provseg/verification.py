@@ -70,22 +70,27 @@ class NLIVerifier:
         entail_threshold: float = 0.5,
         contradict_threshold: float = 0.5,
         window_sentences: int | tuple[int, ...] = 3,
+        encoder=None,
     ):
         self.model_name = model_name
         self.name = f"nli:{model_name}"
         self.entail_threshold = entail_threshold
         self.contradict_threshold = contradict_threshold
         self.window_sentences = window_sentences
+        self.encoder = encoder  # an already-loaded CrossEncoder (e.g. placed on a GPU); default: shared CPU instance
+
+    def _encoder(self):
+        return self.encoder if self.encoder is not None else _cross_encoder(self.model_name)
 
     def _label_index(self) -> dict[str, int]:
-        cfg = _cross_encoder(self.model_name).model.config
+        cfg = self._encoder().model.config
         return {v.lower(): int(k) for k, v in cfg.id2label.items()}
 
     def score_pairs(self, pairs: list[tuple[str, str]]) -> np.ndarray:
         """Probabilities with columns (entailment, contradiction) for (premise, hypothesis) pairs."""
         if not pairs:
             return np.zeros((0, 2))
-        logits = np.asarray(_cross_encoder(self.model_name).predict(pairs, batch_size=16, show_progress_bar=False))
+        logits = np.asarray(self._encoder().predict(pairs, batch_size=16, show_progress_bar=False))
         probs = np.exp(logits - logits.max(axis=1, keepdims=True))
         probs /= probs.sum(axis=1, keepdims=True)
         li = self._label_index()

@@ -134,19 +134,27 @@ content-addressed cache (`cache/llm/`), so `--offline` replays a run byte for by
 
 ## Hosting
 
-**Explorer (Hugging Face Space).** The explorer never calls a model provider, so it can be
-public. Besides the committed runs it offers model-free checks: the contexts the `direct` and
+**Demo (Hugging Face Space, Gradio on ZeroGPU).** The demo never calls a model provider, so it
+can be public. It shows the committed runs plus model-free checks: the contexts the `direct` and
 `rag_bm25` systems would build under the budget, exact quote anchoring, and the project's NLI
-verifier run on CPU against the original passages (`PROVSEG_LIVE_NLI=0` turns that off). The
-`Dockerfile` bakes the NLI model into the image. Publish with the `hf` CLI (`hf auth login` first):
+verifier against the original passages. Hugging Face now requires a paid plan for Docker and
+CPU Gradio Spaces, while free accounts can host up to 2 Gradio Spaces on ZeroGPU, so the Space is
+a Gradio app (`space/app.py`, `src/provseg/app/gradio_app.py`). Only the verifier call runs
+inside `@spaces.GPU`; when the visitor's daily ZeroGPU quota is used up, the same check runs on
+CPU and the result says so. Run it locally with `uv sync --extra nli --extra demo` and
+`uv run python space/app.py`. Publish with the `hf` CLI (`hf auth login` first):
 
 ```bash
 uv run python scripts/deploy_space.py --space ARslan-Ahamd/provenance-segment --dry-run
 uv run python scripts/deploy_space.py --space ARslan-Ahamd/provenance-segment
 ```
 
-The script uploads the committed `Dockerfile`, project files, `src/` and `runs/`, with
-`space/README.md` as the Space card. Any container host works too:
+The script uploads the committed `src/` and `runs/`, with `space/app.py`, `space/README.md` and
+`space/requirements.txt` (generated from `uv.lock` by `--write-requirements`, torch pinned to a
+ZeroGPU-supported release). It creates the Space private; make it public in its settings.
+
+**FastAPI explorer.** `uv run provseg serve` runs the original explorer (same data and checks,
+richer source drawer). The `Dockerfile` packages it for any container host or a PRO Docker Space:
 `docker build -t provseg-explorer . && docker run -p 7860:7860 provseg-explorer`.
 
 **Project page (GitHub Pages).** `site/` is a static page deployed by

@@ -13,6 +13,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
-      - run: uv sync --frozen --extra anthropic --extra app --extra report
+      - run: uv sync --frozen --extra anthropic --extra app --extra report --extra demo
       - run: uv run ruff check .
+      - run: uv run python scripts/deploy_space.py --check-requirements
       - run: uv run pytest -q

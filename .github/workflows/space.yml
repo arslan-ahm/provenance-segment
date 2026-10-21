@@ -3,7 +3,7 @@ name: Sync Hugging Face Space
 on:
   push:
     branches: [main]
-    paths: ["src/**", "runs/**", "space/**", "Dockerfile", "pyproject.toml", "uv.lock"]
+    paths: ["src/**", "runs/**", "space/**", "pyproject.toml", "uv.lock"]
   workflow_dispatch:
 
 concurrency:

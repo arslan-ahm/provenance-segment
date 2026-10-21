@@ -38,6 +38,10 @@ app = [
 report = [
     "matplotlib>=3.11.2",
 ]
+demo = [
+    "gradio==6.30.0",
+    "spaces>=0.51.3",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.9,<0.12.0"]
