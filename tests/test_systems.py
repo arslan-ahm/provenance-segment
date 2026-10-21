@@ -199,14 +199,19 @@ def test_merge_is_triggered_and_provenance_checked(question_bleu, chunks):
         ]
     }
     fake = FakeLLM(route=router(merge=merge))
-    out = run("provseg", question_bleu, chunks, fake, verifier=ScriptedVerifier(), context_budget=60, merge_batch_tokens=10_000)
+    # Budget below the two kept notes but above the single merged note, so merging is required and sufficient.
+    out = run("provseg", question_bleu, chunks, fake, verifier=ScriptedVerifier(), context_budget=80, merge_batch_tokens=10_000)
     rounds = out.trace["merge_rounds"]
-    assert rounds and rounds[0]["batches"] == 1
+    assert len(rounds) == 1 and rounds[0]["batches"] == 1
+    assert rounds[0]["tokens_before"] > 80 >= rounds[0]["tokens_after"]
     # P03 is a real quote but from a chunk that was not in the merged batch -> dropped; invented quote -> dropped.
     assert rounds[0]["dropped_quotes"] == 2 and rounds[0]["dropped_fact_handles"] == 1
+    assert out.trace["truncated_notes"] == 0
     final = out.trace["final_notes"]
-    if final:  # budget is tiny, the deterministic fallback may truncate everything
-        assert [q["text"] for q in final[0]["evidence"]] == [GOOD_QUOTE]
+    assert len(final) == 1
+    assert [q["text"] for q in final[0]["evidence"]] == [GOOD_QUOTE]
+    assert final[0]["facts"] == [{"text": "34.1 beats 33.2", "handles": ["P04"]}]
+    assert out.context_tokens <= 80
 
 
 def test_errors_become_error_outputs(question_bleu, chunks):

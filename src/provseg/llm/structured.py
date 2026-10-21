@@ -74,6 +74,10 @@ def call_structured[T: BaseModel](
     out_model: type[T],
     max_tokens: int | None = None,
 ) -> T:
+    # Stage caps are floors, never below the model's configured max_tokens: on models that
+    # think before answering, thinking tokens count against this limit and a low cap would
+    # truncate the JSON.
+    max_tokens = max(max_tokens or 0, client.spec.max_tokens)
     schema = strict_schema(out_model)
     hint = (
         "\n\nRespond with a single JSON object that matches this JSON schema and nothing else:\n"
@@ -103,4 +107,6 @@ def call_structured[T: BaseModel](
         try:
             return out_model.model_validate(extract_json(resp2.text))
         except (ValueError, ValidationError) as e:
-            raise LLMError(f"{stage}: unparseable structured output after repair: {e}") from e
+            truncated = resp2.stop_reason in ("max_tokens", "length")
+            why = f" (output truncated at max_tokens={max_tokens}; raise it in configs/models.yaml)" if truncated else ""
+            raise LLMError(f"{stage}: unparseable structured output after repair{why}: {e}") from e

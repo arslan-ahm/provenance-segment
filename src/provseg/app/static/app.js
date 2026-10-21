@@ -52,7 +52,6 @@ function parseHash() {
 async function route() {
   closeDrawer();
   const { view, qid, params } = parseHash();
-  document.querySelectorAll(".tabs a").forEach((a) => a.toggleAttribute("aria-current", a.dataset.view === view) || a.removeAttribute("aria-current"));
   document.querySelectorAll(".tabs a").forEach((a) => (a.dataset.view === view ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current")));
   if (!state.run) {
     app.replaceChildren(emptyNoRuns());

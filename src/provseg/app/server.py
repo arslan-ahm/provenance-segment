@@ -27,6 +27,7 @@ class RunStore:
     def __init__(self, runs_dir: Path):
         self.runs_dir = runs_dir
         self._cache: dict[str, Experiment] = {}
+        self._stamps: dict[str, tuple] = {}
         self._lock = threading.Lock()
 
     def names(self) -> list[str]:
@@ -37,8 +38,12 @@ class RunStore:
     def get(self, name: str) -> Experiment:
         if name not in self.names():
             raise HTTPException(404, f"unknown run {name!r}")
+        d = self.runs_dir / name
+        # Reload when predictions or judgments change on disk (e.g. a run still in progress).
+        stamp = tuple(p.stat().st_mtime_ns for p in sorted(d.glob("*.jsonl")))
         with self._lock:
-            if name not in self._cache:
+            if name not in self._cache or self._stamps.get(name) != stamp:
+                self._stamps[name] = stamp
                 manifest = json.loads((self.runs_dir / name / "manifest.json").read_text(encoding="utf-8"))
                 cfg = ExperimentConfig.model_validate({**manifest["config"], "runs_dir": str(self.runs_dir)})
                 exp = Experiment(cfg)

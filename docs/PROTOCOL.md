@@ -80,6 +80,10 @@ Per question, then averaged with 95% percentile bootstrap CIs (2,000 resamples):
 - **Evidence P/R/F1**: cited chunk IDs vs gold evidence chunks, max over annotators.
 - **Citation precision** (ALCE-style): a (statement, citation) pair is precise if that chunk alone supports the statement, or partially supports it while the statement is supported jointly.
 - **Unsupported-claim rate**: share of answer statements not supported by their citations; uncited statements count as unsupported.
+  It is defined only for answers that contain statements, so a system could lower it by abstaining more.
+  That is why the primary hypothesis pairs it with a non-inferiority bound on answer F1 over answerable
+  questions (abstaining on an answerable question scores F1 = 0), and why the false abstention rate and the
+  number of statements per answer are reported next to it.
 - **Out-of-context citation rate**: emitted citations naming no item of the final context.
 - **Distractor citation rate**: citations pointing to injected distractor chunks.
 - **Abstention P/R/F1** over all 130 questions and **false abstention rate** on answerable questions.

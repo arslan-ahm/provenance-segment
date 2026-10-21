@@ -154,3 +154,9 @@ def test_aggregate_shapes_and_pairing(question_bleu):
     rob = next(x for x in agg["robustness"] if x["system"] == "provseg" and x["metric"] == "answer_f1")
     assert rob["delta_vs_clean"] == 0.0
     assert agg["table"][0]["abstain_precision"] is None  # NaN serialised as null
+
+
+def test_correct_abstention_is_not_scored_as_unsupported(question_unanswerable):
+    m = question_metrics(_out([], answer="Unanswerable", qid="q-none"), question_unanswerable, [set(), set()], [])
+    assert m["abstained"] and m["answer_f1"] == 1.0
+    assert math.isnan(m["fully_supported_answer"]) and math.isnan(m["unsupported_claim_rate"])

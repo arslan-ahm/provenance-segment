@@ -77,3 +77,10 @@ def test_empty_runs_dir(tmp_path):
     client = TestClient(create_app(tmp_path / "missing"))
     assert client.get("/api/runs").json() == []
     assert json.loads(client.get("/api/health").text) == {"ok": True, "runs": 0}
+
+
+def test_server_picks_up_new_predictions_without_restart(built):
+    client = TestClient(create_app(built.cfg.runs_dir))
+    assert client.get("/api/runs/t/questions/q-bleu?noise=0").json()["predictions"] == []
+    built.predict()
+    assert len(client.get("/api/runs/t/questions/q-bleu?noise=0").json()["predictions"]) == 2

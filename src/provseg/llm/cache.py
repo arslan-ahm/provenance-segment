@@ -33,6 +33,9 @@ class CachedClient:
         self.root = Path(cache_dir)
         self.offline = offline
         self._lock = threading.Lock()
+        # Identical requests issued concurrently (e.g. segment and provseg asking for the same
+        # note) wait for one provider call instead of each paying for, and caching, their own.
+        self._inflight: dict[str, threading.Lock] = {}
 
     def _path(self, key: str) -> Path:
         return self.root / key[:2] / f"{key}.json"
@@ -83,7 +86,13 @@ class CachedClient:
             return hit
         if self.offline:
             raise LLMError(f"offline replay: no cached response for key {key[:12]} (model {self.spec.model})")
-        resp = self.inner.complete(request)
-        self.put(key, request, resp)
+        with self._lock:
+            key_lock = self._inflight.setdefault(key, threading.Lock())
+        with key_lock:
+            hit = self.get(key)  # another thread may have completed it while we waited
+            if hit is not None:
+                return hit
+            resp = self.inner.complete(request)
+            self.put(key, request, resp)
         resp.cache_key = key
         return resp

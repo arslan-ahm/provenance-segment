@@ -142,3 +142,46 @@ def test_missing_api_key_is_a_clear_error(monkeypatch):
     monkeypatch.delenv("PROVSEG_TEST_KEY", raising=False)
     with pytest.raises(LLMError, match="PROVSEG_TEST_KEY"):
         _openai_client(lambda r: httpx.Response(200), api_key_env="PROVSEG_TEST_KEY")
+
+
+def test_concurrent_identical_requests_make_one_provider_call(tmp_path):
+    import threading
+    import time
+
+    calls = []
+
+    def slow(req):
+        calls.append(1)
+        time.sleep(0.05)
+        return json.dumps({"x": len(calls)})
+
+    cached = CachedClient(FakeLLM(route=slow), tmp_path)
+    results = []
+    threads = [threading.Thread(target=lambda: results.append(cached.complete(LLMRequest(system="s", user="same")).text)) for _ in range(6)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert len(calls) == 1
+    assert results == ['{"x": 1}'] * 6
+
+
+def test_stage_max_tokens_never_below_model_setting():
+    fake = FakeLLM(route=lambda r: '{"x": 1}', spec=FAKE_SPEC.model_copy(update={"max_tokens": 8192}))
+    call_structured(fake, None, "s", "SYS", "u", Out, max_tokens=512)
+    assert fake.requests[0].max_tokens == 8192
+    big = FakeLLM(route=lambda r: '{"x": 1}', spec=FAKE_SPEC.model_copy(update={"max_tokens": 1024}))
+    call_structured(big, None, "s", "SYS", "u", Out, max_tokens=4096)
+    assert big.requests[0].max_tokens == 4096
+
+
+def test_truncation_is_named_in_the_error():
+    from provseg.llm import LLMResponse
+
+    class Truncating(FakeLLM):
+        def complete(self, request):
+            self.requests.append(request)
+            return LLMResponse(text='{"x":', input_tokens=1, output_tokens=1, latency_s=0.0, model="m", stop_reason="max_tokens")
+
+    with pytest.raises(LLMError, match="truncated at max_tokens"):
+        call_structured(Truncating(route=lambda r: ""), None, "s", "SYS", "u", Out)
