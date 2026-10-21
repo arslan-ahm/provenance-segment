@@ -58,9 +58,24 @@ Both conditions are also reported at noise levels 0, 10 and 25 (descriptive, not
 | Base model | `claude-opus-5-5`, effort `medium`, thinking managed by the API (no sampling parameters accepted) |
 | Answer prompt | identical for all systems; JSON with a concise answer and cited statements |
 | Citation handles | neutral `P01..Pnn` in document order; distractors indistinguishable by label |
-| In-system verifier | `cross-encoder/nli-deberta-v3-small`, 3-sentence windows, entail threshold 0.5 |
+| In-system verifier | `cross-encoder/nli-deberta-v3-small`, 1- and 3-sentence windows, entail threshold 0.5 (window setting chosen on the validation split, see below) |
 | Evaluation judge | `claude-sonnet-5-5` rubric judge (separate model, never used inside a system) |
 | Human audit | 100 randomly sampled judged citation pairs, labelled blind to system (`provseg audit-export`) |
+
+## Verifier setting (decided before any prediction, on validation data only)
+
+A sanity check on the frozen test sample (verbatim gold highlighted-evidence sentences as claims, n = 60)
+showed that 3-sentence windows entail only 65.0% of verbatim claims against their own chunk (1.7% false
+entailment against a distractor chunk). To avoid tuning on test data, window settings were compared on a
+separate validation-split sample (`configs/experiments/verifier_dev.yaml`, n = 60):
+
+| Windows | Verbatim claim entailed by its chunk | Entailed by a distractor chunk | CPU s / pair |
+|---|---|---|---|
+| 3 sentences | 71.7% | 3.3% | 6.0 |
+| 1 and 3 sentences | 100.0% | 5.0% | 8.0 |
+
+`[1, 3]` was adopted. This check uses verbatim claims, the easy case; how the verifier handles paraphrased
+model statements is measured in the main run through false rejections and the human audit.
 
 ## Systems
 

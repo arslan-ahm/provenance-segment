@@ -1,0 +1,494 @@
+{
+  "summary": {
+    "model": "cross-encoder/nli-deberta-v3-small",
+    "window_sentences": [
+      3
+    ],
+    "n": 60,
+    "gold_entailed_rate": 0.7166666666666667,
+    "distractor_entailed_rate": 0.03333333333333333,
+    "seconds_per_pair_cpu": 5.956
+  },
+  "cases": [
+    {
+      "qid": "545e92833b0ad4ba32eac5997edecf97a366a244",
+      "claim": "Removing the master node deteriorates performance across all datasets, clearly showing the value of having such a node.",
+      "gold": "entailed",
+      "gold_entail": 0.9859,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0003
+    },
+    {
+      "qid": "761de1610e934189850e8fda707dc5239dd58092",
+      "claim": "We began with evaluating standard MT paradigms, i.e., PBSMT BIBREF3 and NMT BIBREF1 .",
+      "gold": "entailed",
+      "gold_entail": 0.9708,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0037
+    },
+    {
+      "qid": "2c7e94a65f5f532aa31d3e538dcab0468a43b264",
+      "claim": "We defined the intents with guidance from queries collected using a scoping crowdsourcing task, which prompted crowd workers to provide questions and commands related to topic domains in the manner they would interact with an artificially intelligent assistant.",
+      "gold": "entailed",
+      "gold_entail": 0.9529,
+      "distractor": "contradicted",
+      "distractor_entail": 0.3329
+    },
+    {
+      "qid": "34dc0838632d643f33c8dbfe7bd4b656586582a2",
+      "claim": "We compare our personalized models against two baselines.",
+      "gold": "entailed",
+      "gold_entail": 0.9931,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0364
+    },
+    {
+      "qid": "1ed49a8c07ef0ac15cfa6b7decbde6604decbd5b",
+      "claim": "Table TABREF14 shows the results of our main experiments on the 2016 and 2018 test sets for French and German.",
+      "gold": "entailed",
+      "gold_entail": 0.9817,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0004
+    },
+    {
+      "qid": "92d1a6df3041667dc662376938bc65527a5a1c3c",
+      "claim": "For all the tasks in our experimental study, we use 36 millions English tweets collected between August and September 2017.",
+      "gold": "contradicted",
+      "gold_entail": 0.2602,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0004
+    },
+    {
+      "qid": "8a1c0ef69b6022a0642ca131a8eacb5c97016640",
+      "claim": "While manually analyzing the raw dataset, we noticed that looking at the tweet one has replied to or has quoted, provides significant contextual information.",
+      "gold": "contradicted",
+      "gold_entail": 0.3533,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0003
+    },
+    {
+      "qid": "8f16dc7d7be0d284069841e456ebb2c69575b32b",
+      "claim": "As none of the existing KBC methods can solve the OKBC problem, we choose various versions of LiLi as baselines.",
+      "gold": "entailed",
+      "gold_entail": 0.9879,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0009
+    },
+    {
+      "qid": "22815878083ebd2f9e08bc33a5e733063dac7a0f",
+      "claim": "For the Russian language, with its rich morphology, lemmatizing the training and testing data for ELMo representations yields small but consistent improvements in the WSD task.",
+      "gold": "not_enough_evidence",
+      "gold_entail": 0.003,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0009
+    },
+    {
+      "qid": "4bc2784be43d599000cb71d31928908250d4cef3",
+      "claim": "GhostVLAD is an extension of the NetVLAD approach, which we discussed in the previous section.",
+      "gold": "entailed",
+      "gold_entail": 0.9625,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0016
+    },
+    {
+      "qid": "223dc2b9ea34addc0f502003c2e1c1141f6b36a7",
+      "claim": "We thus adapt an off-the-shelf reward learning algorithm BIBREF7 to the supervised setting for automated data manipulation.",
+      "gold": "entailed",
+      "gold_entail": 0.9756,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0013
+    },
+    {
+      "qid": "30af1926559079f59b0df055da76a3a34df8336f",
+      "claim": "The data collection was done using an Android application.",
+      "gold": "entailed",
+      "gold_entail": 0.9903,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0007
+    },
+    {
+      "qid": "f225a9f923e4cdd836dd8fe097848da06ec3e0cc",
+      "claim": "We conduct experiments on the SQuAD dataset BIBREF3.",
+      "gold": "contradicted",
+      "gold_entail": 0.0185,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0005
+    },
+    {
+      "qid": "6a31db1aca57a818f36bba9002561724655372a7",
+      "claim": "Posts in FBFans dataset are used for this analysis.",
+      "gold": "entailed",
+      "gold_entail": 0.9685,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0153
+    },
+    {
+      "qid": "df5a4505edccc0ee11349ed6e7958cf6b84c9ed4",
+      "claim": "The input for both tasks consists of news articles in free-text format, collected from 36 propagandist and 12 non-propagandist news outlets and then annotated by professional annotators.",
+      "gold": "entailed",
+      "gold_entail": 0.9885,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0003
+    },
+    {
+      "qid": "4eaf9787f51cd7cdc45eb85cf223d752328c6ee4",
+      "claim": "In order to train a neural g2p system, one needs a large quantity of pronunciation data.",
+      "gold": "not_enough_evidence",
+      "gold_entail": 0.001,
+      "distractor": "contradicted",
+      "distractor_entail": 0.002
+    },
+    {
+      "qid": "feb448860918ef5b905bb25d7b855ba389117c1f",
+      "claim": "We conduct all our experiments on 635hrs of audio data for 7 Indian languages collected from $\\textbf {All India Radio}$ news channel.",
+      "gold": "not_enough_evidence",
+      "gold_entail": 0.0324,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0005
+    },
+    {
+      "qid": "74e866137b3452ec50fb6feaf5753c8637459e62",
+      "claim": "In the pyramid scoring, the content units in the gold human written summaries are organized in a pyramid.",
+      "gold": "entailed",
+      "gold_entail": 0.9711,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0791
+    },
+    {
+      "qid": "de53af4eddbc30c808d90b8a11a29217d377569e",
+      "claim": "The final collection of Facebook pages for the experiments described in this paper is as follows: FoxNews, CNN, ESPN, New York Times, Time magazine, Huffington Post Weird News, The Guardian, Cartoon Network, Cooking Light, Home Cooking Adventure, Justin Bieber, Nickelodeon, Spongebob, Disney.",
+      "gold": "contradicted",
+      "gold_entail": 0.1488,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0035
+    },
+    {
+      "qid": "fd0a3e9c210163a55d3ed791e95ae3875184b8f8",
+      "claim": "In this study, we investigate the performance of our proposed models on WSJ BIBREF5 .",
+      "gold": "entailed",
+      "gold_entail": 0.9873,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0067
+    },
+    {
+      "qid": "b85fc420eb2f77f6f14f375cc1fcc5155eb5c0a8",
+      "claim": "We focus on social media posts from the website Twitter, which are an excellent testing ground for character based models due to the noisy nature of text.",
+      "gold": "not_enough_evidence",
+      "gold_entail": 0.0014,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0018
+    },
+    {
+      "qid": "fd753ab5177d7bd27db0e0afc12411876ee607df",
+      "claim": "The baseline system for the SLC task is a very simple logistic regression classifier with default parameters, where we represent the input instances with a single feature: the length of the sentence.",
+      "gold": "entailed",
+      "gold_entail": 0.8315,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0003
+    },
+    {
+      "qid": "33554065284110859a8ea3ca7346474ab2cab100",
+      "claim": "We have downloaded 1,873 Twitter conversation threads, roughly 14k tweets, from a publicly available resource that were previously pre-processed and have conversation threads extracted.",
+      "gold": "entailed",
+      "gold_entail": 0.9256,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0034
+    },
+    {
+      "qid": "984fc3e726848f8f13dfe72b89e3770d00c3a1af",
+      "claim": "An important feature when suggesting an article INLINEFORM0 to an entity INLINEFORM1 is the novelty of INLINEFORM2 w.r.t the already existing entity profile INLINEFORM3",
+      "gold": "entailed",
+      "gold_entail": 0.861,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.019
+    },
+    {
+      "qid": "b36f867fcda5ad62c46d23513369337352aa01d2",
+      "claim": "We use two popular knowledge bases: WordNet BIBREF0 and Freebase BIBREF1 in this paper.",
+      "gold": "entailed",
+      "gold_entail": 0.9892,
+      "distractor": "contradicted",
+      "distractor_entail": 0.1059
+    },
+    {
+      "qid": "c88a846197b72d25e04ec55f00ee3e72f655504c",
+      "claim": "We draw on a recently released corpus of state speeches delivered during the annual UN General Debate that provides the first dataset of textual output from states that is recorded at regular time-series intervals and includes a sample of all countries that deliver speeches BIBREF11 .",
+      "gold": "contradicted",
+      "gold_entail": 0.0279,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0037
+    },
+    {
+      "qid": "fde700d5134a9ae8f7579bea1f1b75f34d7c1c4c",
+      "claim": "DeepMine is publicly available for everybody with a variety of licenses for different users.",
+      "gold": "not_enough_evidence",
+      "gold_entail": 0.0367,
+      "distractor": "contradicted",
+      "distractor_entail": 0.001
+    },
+    {
+      "qid": "e101e38efaa4b931f7dd75757caacdc945bb32b4",
+      "claim": "We use Waseem and Hovy BIBREF5, Davidson et al.",
+      "gold": "entailed",
+      "gold_entail": 0.9968,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0022
+    },
+    {
+      "qid": "1ec152119cf756b16191b236c85522afeed11f59",
+      "claim": "We measure how contextual a word representation is using three different metrics: self-similarity, intra-sentence similarity, and maximum explainable variance.",
+      "gold": "entailed",
+      "gold_entail": 0.9893,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0057
+    },
+    {
+      "qid": "27de1d499348e17fec324d0ef00361a490659988",
+      "claim": "To do so, we constructed a new dataset with 23,700 queries that are short and unstructured, in the same style made by real users of task-oriented systems.",
+      "gold": "not_enough_evidence",
+      "gold_entail": 0.39,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0001
+    },
+    {
+      "qid": "cd32a38e0f33b137ab590e1677e8fb073724df7f",
+      "claim": "Grammatically correct text is needed as the starting point for inserting artificial errors, and we used two different sources: 1) the corrected version of the same FCE training set on which the system is trained (450K tokens), and 2) example sentences extracted from the English Vocabulary Profile (270K tokens).",
+      "gold": "entailed",
+      "gold_entail": 0.8032,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0128
+    },
+    {
+      "qid": "f71b52e00e0be80c926f153b9fe0a06dd93af11e",
+      "claim": "The average content score across the paintings is 3.7 which demonstrates that the prose generated is relevant to the painting.",
+      "gold": "entailed",
+      "gold_entail": 0.9462,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0037
+    },
+    {
+      "qid": "81dbe9a9ddaa5d02b02e01a306d898015a56ffb6",
+      "claim": "We therefore propose attention models to infer the latent context, i.e., the series of posts that trigger an intervention.",
+      "gold": "entailed",
+      "gold_entail": 0.8029,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0329
+    },
+    {
+      "qid": "375b281e7441547ba284068326dd834216e55c07",
+      "claim": "Macaw also supports Wizard of Oz studies or intermediary-based information seeking studies.",
+      "gold": "entailed",
+      "gold_entail": 0.9773,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0007
+    },
+    {
+      "qid": "352bc6de5c5068c6c19062bad1b8f644919b1145",
+      "claim": "We validate the performance of the proposed s2sL by providing the preliminary results obtained on two different tasks namely, Speech/Music discrimination and emotion classification.",
+      "gold": "entailed",
+      "gold_entail": 0.9565,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0046
+    },
+    {
+      "qid": "9658b5ffb5c56e5a48a3fea0342ad8fc99741908",
+      "claim": "As this corpus of annotated patient notes comprises original healthcare data which contains protected health information (PHI) per The Health Information Portability and Accountability Act of 1996 (HIPAA) BIBREF16 and can be joined to the MIMIC-III database, individuals who wish to access to the data must satisfy all requirements to access the data contained within MIMIC-III.",
+      "gold": "entailed",
+      "gold_entail": 0.6314,
+      "distractor": "contradicted",
+      "distractor_entail": 0.016
+    },
+    {
+      "qid": "b06512c17d99f9339ffdab12cedbc63501ff527e",
+      "claim": "The only requirement is that the model accepts as input, an embedding layer (for entities and relations).",
+      "gold": "entailed",
+      "gold_entail": 0.6213,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0006
+    },
+    {
+      "qid": "9a7ba5ed1779c664d2cac92494a43517d3e87c96",
+      "claim": "For instance, schema 23 from the WSC collection can be translated into both \u201cThe girls were bullying the boys so we [punished/rescued] them\u201d and \u201cThe boys were bullying the girls, so we [punished/rescued] them,\u201d thus avoiding any presupposition of whether girls are more likely to bully boys or vice versa.",
+      "gold": "entailed",
+      "gold_entail": 0.9741,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0072
+    },
+    {
+      "qid": "477d9d3376af4d938bb01280fe48d9ae7c9cf7f7",
+      "claim": "We evaluate with all commonly-used metrics in question generation BIBREF13: BLEU-1 (B1), BLEU-2 (B2), BLEU-3 (B3), BLEU-4 (B4) BIBREF17, METEOR (MET) BIBREF18 and ROUGE-L (R-L) BIBREF19.",
+      "gold": "entailed",
+      "gold_entail": 0.9823,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0298
+    },
+    {
+      "qid": "7697baf8d8d582c1f664a614f6332121061f87db",
+      "claim": "We chose SVMhmm BIBREF111 implementation of Structural Support Vector Machines for sequence labeling.",
+      "gold": "entailed",
+      "gold_entail": 0.5848,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0013
+    },
+    {
+      "qid": "c01784b995f6594fdb23d7b62f20a35ae73eaa77",
+      "claim": "On the other hand, Go-Explore Seq2Seq shows promising results by solving almost half of the unseen games.",
+      "gold": "entailed",
+      "gold_entail": 0.5643,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0002
+    },
+    {
+      "qid": "e374169ee10f835f660ab8403a5701114586f167",
+      "claim": "We consider 5 major profile attributes for further analysis.",
+      "gold": "entailed",
+      "gold_entail": 0.556,
+      "distractor": "entailed",
+      "distractor_entail": 0.9487
+    },
+    {
+      "qid": "f7a89b9cd2792f23f2cb43d50a01b8218a6fbb24",
+      "claim": "The SnapCaptions dataset is composed of 10K user-generated image (snap) and textual caption pairs where named entities in captions are manually labeled by expert human annotators (entity types: PER, LOC, ORG, MISC).",
+      "gold": "contradicted",
+      "gold_entail": 0.0021,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0018
+    },
+    {
+      "qid": "981fd79dd69581659cb1d4e2b29178e82681eb4d",
+      "claim": "To better analyze model generalization to an unseen, new domain as well as model leveraging the out-of-domain sources, we propose a new architecture which is an extension of the ARED model.",
+      "gold": "entailed",
+      "gold_entail": 0.5784,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0031
+    },
+    {
+      "qid": "b5bc34e1e381dbf972d0b594fe8c66ff75305d71",
+      "claim": "For English datasets including CoNLL2003 and OntoNotes5.0, our proposed method outperforms BERT-MRCBIBREF38 by +0.29 and +0.96 respectively.",
+      "gold": "contradicted",
+      "gold_entail": 0.298,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0031
+    },
+    {
+      "qid": "dfca00be3284cc555a6a4eac4831471fb1f5875b",
+      "claim": "Eventually, we have a balanced testing dataset, where each term-sense pair has around 15 samples for testing (on average, each pair has 14.56 samples and the median sample number is 15), and a comparison with training dataset is shown in Figure FIGREF11.",
+      "gold": "entailed",
+      "gold_entail": 0.7726,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0326
+    },
+    {
+      "qid": "f8f4e4a50d2b3fbd193327e79ea32d8d057e1414",
+      "claim": "As of January 2020, the latest CoVo 2019-06-12 release includes 29 languages.",
+      "gold": "contradicted",
+      "gold_entail": 0.0401,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0009
+    },
+    {
+      "qid": "30eacb4595014c9c0e5ee9669103d003cfdfe1e5",
+      "claim": "We used the relation classification dataset of the SemEval 2010 task 8 BIBREF8 .",
+      "gold": "entailed",
+      "gold_entail": 0.9544,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0216
+    },
+    {
+      "qid": "41ac23e32bf208b69414f4b687c4f324c6132464",
+      "claim": "Here a small portion of the large parallel corpus for English-German is used as a simulation for the scenario where we do not have much parallel data: Translating texts in English to German.",
+      "gold": "entailed",
+      "gold_entail": 0.9875,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0826
+    },
+    {
+      "qid": "8c48c726bb17a17d70ab29db4d65a93030dd5382",
+      "claim": "In total, this resulted in 57,505 and 2,428 sentences in the train and test set abstracts, respectively.",
+      "gold": "not_enough_evidence",
+      "gold_entail": 0.0484,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0004
+    },
+    {
+      "qid": "e8f969ffd637b82d04d3be28c51f0f3ca6b3883e",
+      "claim": "For the evaluation of summaries we use the standard ROGUE metric.",
+      "gold": "contradicted",
+      "gold_entail": 0.1377,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0001
+    },
+    {
+      "qid": "e807d347742b2799bc347c0eff19b4c270449fee",
+      "claim": "BioASQ organizers provide the training and testing data.",
+      "gold": "entailed",
+      "gold_entail": 0.952,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0664
+    },
+    {
+      "qid": "4d47bef19afd70c10bbceafd1846516546641a2f",
+      "claim": "We consider two types of architectures: a bi-directional language model to augment the sequence to sequence encoder and a uni-directional model to augment the decoder.",
+      "gold": "entailed",
+      "gold_entail": 0.8609,
+      "distractor": "entailed",
+      "distractor_entail": 0.6552
+    },
+    {
+      "qid": "1cfed6b0c9b5a079a51166209649a987e7553e4e",
+      "claim": "Active learning sharply increases the performance of iteratively trained machine learning models by selectively determining which unlabeled samples should be annotated.",
+      "gold": "entailed",
+      "gold_entail": 0.9866,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0004
+    },
+    {
+      "qid": "1dc2da5078a7e5ea82ccd1c90d81999a922bc9bf",
+      "claim": "For instance, the sentence \u201cThe girls sang a song and they danced\u201d is translated into French as \u201cLes filles ont chant\u00e9 une chanson et ils ont dans\u00e9\u201d by Google Translate (GT), Bing Translate, and Yandex.",
+      "gold": "contradicted",
+      "gold_entail": 0.0158,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0025
+    },
+    {
+      "qid": "1329280df5ee9e902b2742bde4a97bc3e6573ff3",
+      "claim": "In the sentiment analysis experiments, we found that a tweet may contain multiple sentiments.",
+      "gold": "entailed",
+      "gold_entail": 0.9883,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.007
+    },
+    {
+      "qid": "45a5961a4e1d1c22874c4918e5c98bd3c0a670b3",
+      "claim": "FIGREF4 shows the distributions of seven question types grouped deterministically from the lexicons.",
+      "gold": "entailed",
+      "gold_entail": 0.9897,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0027
+    },
+    {
+      "qid": "a29c071065d26e5ee3c3bcd877e7f215c59d1d33",
+      "claim": "We showed in BIBREF22 that Pearson correlation is badly suited for STS.",
+      "gold": "entailed",
+      "gold_entail": 0.9438,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0034
+    },
+    {
+      "qid": "392fb87564c4f45d0d8d491a9bb217c4fce87f03",
+      "claim": "Firstly, LastStateRNN is the classic RNN model, where the last state passes through an MLP and then the LR Layer estimates the corresponding probability.",
+      "gold": "entailed",
+      "gold_entail": 0.609,
+      "distractor": "not_enough_evidence",
+      "distractor_entail": 0.0041
+    },
+    {
+      "qid": "891c2001d6baaaf0da4e65b647402acac621a7d2",
+      "claim": "The best result for each task is in bold.",
+      "gold": "entailed",
+      "gold_entail": 0.9716,
+      "distractor": "contradicted",
+      "distractor_entail": 0.0014
+    }
+  ]
+}

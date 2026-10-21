@@ -37,6 +37,7 @@ verifier:                    # used INSIDE provseg
   model: cross-encoder/nli-deberta-v3-small
   entail_threshold: 0.5
   contradict_threshold: 0.5
+  window_sentences: [1, 3]   # chosen on the validation split (runs/verifier_dev/diagnostics), see PROTOCOL.md
 
 judge:                       # used ONLY for evaluation; must differ from the verifier
   kind: llm

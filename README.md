@@ -27,10 +27,10 @@ The pre-registered hypothesis, data, settings and metrics are in
 
 | Part | State |
 |---|---|
-| Pipeline, four systems, ablations, evaluation, statistics, report generator | built, 83 tests passing |
+| Pipeline, four systems, ablations, evaluation, statistics, report generator | built, 89 tests passing |
 | Frozen sample and noisy instances (`runs/main_v1/`) | **built from real QASPER data and committed** |
 | Retrieval diagnostic (no LLM) | **run on real data**, results below |
-| NLI verifier sanity check (no LLM) | **run on real data**, `runs/main_v1/diagnostics/verifier_sanity.json` |
+| NLI verifier sanity check (no LLM) | **run on real data**: 3-sentence windows entailed only 65% of verbatim evidence on test, so window sizes were re-chosen on validation (100% / 5% false entailment); see `docs/PROTOCOL.md` |
 | Main experiment with the base model | **not run yet**: needs an API key and a budget decision (`provseg estimate`) |
 | Human audit of the judge | pending the main run |
 

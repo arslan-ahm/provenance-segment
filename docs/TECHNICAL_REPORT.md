@@ -95,7 +95,7 @@ Provenance-Segment, stripped.
 
 Each statement is checked against the original text of its cited chunks with an NLI cross-encoder
 (`nli-deberta-v3-small`). Because a chunk exceeds the model's input, the premise is scored as
-three-sentence windows and the best window counts; for multi-citation statements, the best windows
+one- and three-sentence windows and the best window counts; for multi-citation statements, the best windows
 of all cited chunks are also scored jointly. A statement is supported if entailment probability is
 at least 0.5. Unsupported statements are revised once using only the cited passages and re-verified;
 otherwise they are dropped. If any statement changed, the final answer is regenerated from the
@@ -135,7 +135,20 @@ filter, merge and answer stages, which the main experiment measures.
 
 ### 5.2 Verifier sanity check (run; no LLM)
 
-VERIFIER_SANITY_PLACEHOLDER
+We use each annotator's highlighted-evidence sentence as a claim and check it against (a) the chunk that
+contains it and (b) a random distractor chunk from another paper (n = 60 each, CPU).
+
+| Setting | Data | Verbatim claim entailed by its chunk | Entailed by distractor |
+|---|---|---|---|
+| 3-sentence windows | test sample (frozen run) | 65.0% | 1.7% |
+| 3-sentence windows | validation sample | 71.7% | 3.3% |
+| 1- and 3-sentence windows (adopted) | validation sample | 100.0% | 5.0% |
+
+Three-sentence windows dilute one-sentence claims enough that a third of verbatim evidence fails
+verification, which would make the verifier reject many valid statements. Adding single-sentence windows
+fixes this on held-out validation data at a small cost in false entailment. Verbatim claims are the easy
+case; paraphrased statements are evaluated through false rejections in the main run. Settings were chosen
+on validation only; the test number is reported as observed.
 
 ### 5.3 Main comparison (pending)
 

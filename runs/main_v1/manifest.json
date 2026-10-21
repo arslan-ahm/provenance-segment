@@ -1,8 +1,8 @@
 {
   "name": "main_v1",
-  "created_utc": "2026-10-21T08:30:50.963064+00:00",
+  "created_utc": "2026-10-21T09:44:48.996817+00:00",
   "prompt_version": "2026-10-21.1",
-  "git_commit": null,
+  "git_commit": "2a15b82780bda6adfa85a5bbf79be796b1ce177e",
   "python": "3.12.13",
   "platform": "Windows-10-10.0.19045-SP0",
   "packages": {
@@ -133,7 +133,11 @@
       "model": "cross-encoder/nli-deberta-v3-small",
       "model_ref": null,
       "entail_threshold": 0.5,
-      "contradict_threshold": 0.5
+      "contradict_threshold": 0.5,
+      "window_sentences": [
+        1,
+        3
+      ]
     },
     "judge": {
       "kind": "llm",
