@@ -1,0 +1,57 @@
+# Pre-registered main experiment (see docs/PROTOCOL.md). Do not edit after the first prediction is written;
+# copy to a new file with a new `name` instead, so every run directory maps to exactly one config.
+name: main_v1
+description: >
+  QASPER test, 100 answerable + 30 unanswerable questions, matched random-distractor noise (0/10/25/50 chunks),
+  2048-token final context budget, same base model and answer prompt for every system.
+models_file: ../models.yaml
+
+data:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  split: test
+  pool_split: train          # distractors come from papers disjoint from the evaluation split
+
+sample:
+  n_answerable: 100
+  n_unanswerable: 30
+  seed: 13
+  max_per_doc: 2
+
+chunking:
+  target_tokens: 550
+  max_tokens: 700
+  min_tokens: 300
+  overlap_tokens: 50
+
+noise:
+  levels: [0, 10, 25, 50]
+  mode: random
+  seed: 7
+
+context_budget: 2048
+base_model: base
+
+verifier:                    # used INSIDE provseg
+  kind: nli
+  model: cross-encoder/nli-deberta-v3-small
+  entail_threshold: 0.5
+  contradict_threshold: 0.5
+
+judge:                       # used ONLY for evaluation; must differ from the verifier
+  kind: llm
+  model_ref: judge
+  audit_sample: 100
+
+systems:
+  - {name: direct, kind: direct}
+  - {name: rag_bm25, kind: rag, retriever: bm25}
+  - {name: segment, kind: segment}
+  - {name: provseg, kind: provseg}
+  # Ablation: anchoring and provenance-checked merging without claim verification.
+  - {name: provseg_noverify, kind: provseg, verify: false}
+
+runs_dir: runs
+cache_dir: cache/llm
+question_workers: 4
+note_workers: 8

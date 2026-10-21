@@ -1,0 +1,19 @@
+# Ablations on the clean and the noisiest setting: verifier type, repair policy, claim granularity, budget.
+# Uses the same sample as main_v1 (same seed), so predictions are paired with the main run's questions.
+name: ablations_v1
+models_file: ../models.yaml
+data: {raw_dir: data/raw, processed_dir: data/processed, split: test, pool_split: train}
+sample: {n_answerable: 100, n_unanswerable: 30, seed: 13, max_per_doc: 2}
+noise: {levels: [0, 50], mode: random, seed: 7}
+context_budget: 2048
+base_model: base
+verifier: {kind: nli, model: cross-encoder/nli-deberta-v3-small}
+judge: {kind: llm, model_ref: judge}
+systems:
+  - {name: provseg, kind: provseg}
+  - {name: provseg_drop, kind: provseg, on_unsupported: drop}
+  - {name: provseg_atomic, kind: provseg, claim_mode: atomic}
+  - {name: provseg_noanchor, kind: provseg, anchor_quotes: false}
+  - {name: rag_bm25, kind: rag, retriever: bm25}
+runs_dir: runs
+cache_dir: cache/llm

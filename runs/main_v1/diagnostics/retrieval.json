@@ -1,0 +1,285 @@
+{
+  "context_budget": 2048,
+  "table": [
+    {
+      "method": "bm25",
+      "noise_level": 0,
+      "n": 100,
+      "gold_recall_at_budget": {
+        "mean": 0.7761666666666668,
+        "low": 0.6923208333333334,
+        "high": 0.8523375000000001
+      },
+      "all_gold_in_context": {
+        "mean": 0.75,
+        "low": 0.66,
+        "high": 0.83
+      },
+      "distractor_token_share": {
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0
+      },
+      "mrr_first_gold": {
+        "mean": 0.5228592796092797,
+        "low": 0.45855620421245424,
+        "high": 0.5945878510378511
+      },
+      "chunks_in_context": {
+        "mean": 4.6,
+        "low": 4.49,
+        "high": 4.72
+      },
+      "doc_chunks": {
+        "mean": 11.78,
+        "low": 10.86,
+        "high": 12.76
+      }
+    },
+    {
+      "method": "bm25",
+      "noise_level": 10,
+      "n": 100,
+      "gold_recall_at_budget": {
+        "mean": 0.6703333333333333,
+        "low": 0.5793250000000001,
+        "high": 0.757
+      },
+      "all_gold_in_context": {
+        "mean": 0.65,
+        "low": 0.56,
+        "high": 0.74
+      },
+      "distractor_token_share": {
+        "mean": 0.22631725549208823,
+        "low": 0.18232399242064204,
+        "high": 0.27495820808166765
+      },
+      "mrr_first_gold": {
+        "mean": 0.4742374282064685,
+        "low": 0.4097779656714544,
+        "high": 0.5404976450987091
+      },
+      "chunks_in_context": {
+        "mean": 4.68,
+        "low": 4.56,
+        "high": 4.8
+      },
+      "doc_chunks": {
+        "mean": 21.78,
+        "low": 20.86,
+        "high": 22.76
+      }
+    },
+    {
+      "method": "bm25",
+      "noise_level": 25,
+      "n": 100,
+      "gold_recall_at_budget": {
+        "mean": 0.6153333333333334,
+        "low": 0.5253333333333333,
+        "high": 0.71
+      },
+      "all_gold_in_context": {
+        "mean": 0.6,
+        "low": 0.51,
+        "high": 0.7
+      },
+      "distractor_token_share": {
+        "mean": 0.347482432049576,
+        "low": 0.29230087051548004,
+        "high": 0.4061255165076857
+      },
+      "mrr_first_gold": {
+        "mean": 0.42715417392666444,
+        "low": 0.3628103340841608,
+        "high": 0.4977967000620493
+      },
+      "chunks_in_context": {
+        "mean": 4.87,
+        "low": 4.74,
+        "high": 5.0
+      },
+      "doc_chunks": {
+        "mean": 36.78,
+        "low": 35.86,
+        "high": 37.76
+      }
+    },
+    {
+      "method": "bm25",
+      "noise_level": 50,
+      "n": 100,
+      "gold_recall_at_budget": {
+        "mean": 0.5203333333333334,
+        "low": 0.424,
+        "high": 0.6183333333333333
+      },
+      "all_gold_in_context": {
+        "mean": 0.5,
+        "low": 0.4,
+        "high": 0.6
+      },
+      "distractor_token_share": {
+        "mean": 0.3946438002768014,
+        "low": 0.330286639243087,
+        "high": 0.45844873877372416
+      },
+      "mrr_first_gold": {
+        "mean": 0.4234633310762128,
+        "low": 0.3566118250255224,
+        "high": 0.49865079162742726
+      },
+      "chunks_in_context": {
+        "mean": 5.05,
+        "low": 4.92,
+        "high": 5.18
+      },
+      "doc_chunks": {
+        "mean": 61.78,
+        "low": 60.86,
+        "high": 62.76
+      }
+    },
+    {
+      "method": "direct",
+      "noise_level": 0,
+      "n": 100,
+      "gold_recall_at_budget": {
+        "mean": 0.4275,
+        "low": 0.335,
+        "high": 0.52
+      },
+      "all_gold_in_context": {
+        "mean": 0.41,
+        "low": 0.32,
+        "high": 0.5
+      },
+      "distractor_token_share": {
+        "mean": 0.0,
+        "low": 0.0,
+        "high": 0.0
+      },
+      "mrr_first_gold": {
+        "mean": 0.28664826839826846,
+        "low": 0.2430410443722944,
+        "high": 0.335740367965368
+      },
+      "chunks_in_context": {
+        "mean": 4.52,
+        "low": 4.42,
+        "high": 4.62
+      },
+      "doc_chunks": {
+        "mean": 11.78,
+        "low": 10.86,
+        "high": 12.76
+      }
+    },
+    {
+      "method": "direct",
+      "noise_level": 10,
+      "n": 100,
+      "gold_recall_at_budget": {
+        "mean": 0.1925,
+        "low": 0.1224375,
+        "high": 0.275
+      },
+      "all_gold_in_context": {
+        "mean": 0.18,
+        "low": 0.11,
+        "high": 0.26
+      },
+      "distractor_token_share": {
+        "mean": 0.5009984241311414,
+        "low": 0.45853752771823325,
+        "high": 0.5426919623908774
+      },
+      "mrr_first_gold": {
+        "mean": 0.15552720435103998,
+        "low": 0.12896914027196946,
+        "high": 0.18634736260289453
+      },
+      "chunks_in_context": {
+        "mean": 4.67,
+        "low": 4.53,
+        "high": 4.8
+      },
+      "doc_chunks": {
+        "mean": 21.78,
+        "low": 20.86,
+        "high": 22.76
+      }
+    },
+    {
+      "method": "direct",
+      "noise_level": 25,
+      "n": 100,
+      "gold_recall_at_budget": {
+        "mean": 0.085,
+        "low": 0.04,
+        "high": 0.145
+      },
+      "all_gold_in_context": {
+        "mean": 0.07,
+        "low": 0.03,
+        "high": 0.13
+      },
+      "distractor_token_share": {
+        "mean": 0.7309133172750322,
+        "low": 0.6939994657102662,
+        "high": 0.7645738785392101
+      },
+      "mrr_first_gold": {
+        "mean": 0.09054865577274401,
+        "low": 0.0769071420380074,
+        "high": 0.10569908608647723
+      },
+      "chunks_in_context": {
+        "mean": 4.83,
+        "low": 4.69,
+        "high": 4.97
+      },
+      "doc_chunks": {
+        "mean": 36.78,
+        "low": 35.86,
+        "high": 37.76
+      }
+    },
+    {
+      "method": "direct",
+      "noise_level": 50,
+      "n": 100,
+      "gold_recall_at_budget": {
+        "mean": 0.03,
+        "low": 0.005,
+        "high": 0.065
+      },
+      "all_gold_in_context": {
+        "mean": 0.02,
+        "low": 0.0,
+        "high": 0.05
+      },
+      "distractor_token_share": {
+        "mean": 0.876874693943315,
+        "low": 0.8468949570879312,
+        "high": 0.9042580767553446
+      },
+      "mrr_first_gold": {
+        "mean": 0.05535276339376024,
+        "low": 0.046655342900575374,
+        "high": 0.06492563989839953
+      },
+      "chunks_in_context": {
+        "mean": 5.09,
+        "low": 4.93,
+        "high": 5.24
+      },
+      "doc_chunks": {
+        "mean": 61.78,
+        "low": 60.86,
+        "high": 62.76
+      }
+    }
+  ]
+}

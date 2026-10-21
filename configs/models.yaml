@@ -1,0 +1,60 @@
+# Named model endpoints. Experiments refer to these names (base_model, judge.model_ref, verifier.model_ref).
+# Prices are USD per 1M tokens and are used only for cost reporting; check current provider pricing.
+# Keys are read from the environment variable named in api_key_env; never put a key in this file.
+models:
+  # Base model for all compared systems. Thinking is always on for this model and sampling
+  # parameters are not accepted, so `temperature` stays unset; effort is pinned for reproducibility.
+  base:
+    provider: anthropic
+    model: claude-opus-5-5
+    api_key_env: ANTHROPIC_API_KEY
+    effort: medium
+    max_tokens: 8192
+    price_in_per_mtok: 4.0
+    price_out_per_mtok: 20.0
+    max_concurrency: 8
+
+  # Evaluation judge. It never runs inside a system. A judge from a different model family
+  # (see `judge_openai` below) removes same-family bias; report which one you used.
+  judge:
+    provider: anthropic
+    model: claude-sonnet-5-5
+    api_key_env: ANTHROPIC_API_KEY
+    effort: medium
+    max_tokens: 4096
+    price_in_per_mtok: 2.0
+    price_out_per_mtok: 10.0
+    max_concurrency: 8
+
+  # Cheaper base model for a smaller-model replication (Segment+ reports larger gains for small models).
+  small:
+    provider: anthropic
+    model: claude-haiku-5-5
+    api_key_env: ANTHROPIC_API_KEY
+    effort: low
+    max_tokens: 4096
+    price_in_per_mtok: 0.10
+    price_out_per_mtok: 0.50
+    max_concurrency: 8
+
+  # Any OpenAI-compatible endpoint (OpenAI, OpenRouter, Groq, vLLM, LM Studio). Set the model name you have access to.
+  judge_openai:
+    provider: openai_compat
+    base_url: https://api.openai.com/v1
+    model: SET-ME
+    api_key_env: OPENAI_API_KEY
+    temperature: 0.0
+    json_mode: schema
+    max_tokens: 4096
+    max_concurrency: 8
+
+  # Fully local open-weights run through Ollama (https://ollama.com): `ollama pull qwen2.5:7b-instruct`.
+  local_qwen:
+    provider: openai_compat
+    base_url: http://localhost:11434/v1
+    model: qwen2.5:7b-instruct
+    temperature: 0.0
+    json_mode: object
+    max_tokens: 2048
+    max_concurrency: 1
+    timeout_s: 900

@@ -1,0 +1,16 @@
+# Secondary experiment: topically similar ("hard") distractors drawn by BM25 against each paper's title and abstract.
+name: hard_noise_v1
+models_file: ../models.yaml
+data: {raw_dir: data/raw, processed_dir: data/processed, split: test, pool_split: train}
+sample: {n_answerable: 100, n_unanswerable: 30, seed: 13, max_per_doc: 2}
+noise: {levels: [0, 10, 25, 50], mode: hard, seed: 7}
+context_budget: 2048
+base_model: base
+verifier: {kind: nli, model: cross-encoder/nli-deberta-v3-small}
+judge: {kind: llm, model_ref: judge}
+systems:
+  - {name: rag_bm25, kind: rag, retriever: bm25}
+  - {name: segment, kind: segment}
+  - {name: provseg, kind: provseg}
+runs_dir: runs
+cache_dir: cache/llm

@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.pytest_tmp/
+.ruff_cache/
+
+# Downloaded and derived data: reproducible with `provseg download` + `provseg prepare`
+data/raw/
+data/processed/
+
+# Raw model-call cache. Publish it as a release asset next to a results run, not in git.
+cache/
+
+# Large per-run artefacts are committed only for frozen runs (see README, "What is in git")
+runs/*/figures/*.tmp
+.env

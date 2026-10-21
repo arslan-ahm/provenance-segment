@@ -1,0 +1,60 @@
+[project]
+name = "provseg"
+version = "0.1.0"
+description = "Provenance-Segment: source-verifiable long-document QA with short-context LLMs"
+readme = "README.md"
+authors = [
+    { name = "ARslan Ahmad", email = "arslan.ahmad@cybergen.ai" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "numpy>=2.5.4",
+    "pandas>=3.0.6",
+    "pyarrow>=26.0.0",
+    "pydantic>=2.14.1",
+    "pyyaml>=6.0.3",
+    "rank-bm25>=0.2.2",
+    "rich>=15.0.0",
+    "tiktoken>=0.14.0",
+    "typer>=0.27.3",
+]
+
+[project.scripts]
+provseg = "provseg.cli:app"
+
+[project.optional-dependencies]
+anthropic = [
+    "anthropic>=0.70",
+]
+nli = [
+    "sentence-transformers>=6.1.0",
+]
+app = [
+    "fastapi>=0.156.5",
+    "uvicorn[standard]>=0.54.0",
+]
+report = [
+    "matplotlib>=3.11.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.9,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff]
+line-length = 160
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501", "B008", "B905"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

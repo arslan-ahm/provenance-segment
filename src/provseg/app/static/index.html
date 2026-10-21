@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Provenance Explorer</title>
+  <meta name="description" content="Inspect every answer, citation and verification decision of the Provenance-Segment experiments on QASPER.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.1.0/400.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.1.0/500.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.1.0/600.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-mono@5.1.0/400.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/">
+      <i class="ph ph-quotes" aria-hidden="true"></i>
+      <span>Provenance Explorer</span>
+    </a>
+    <nav class="tabs" aria-label="Views">
+      <a href="#/" data-view="overview">Overview</a>
+      <a href="#/questions" data-view="questions">Questions</a>
+    </nav>
+    <div class="topbar-right">
+      <label class="run-picker">
+        <span class="sr-only">Experiment run</span>
+        <select id="run-select" aria-label="Experiment run"></select>
+      </label>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle colour theme"><i class="ph ph-circle-half" aria-hidden="true"></i></button>
+    </div>
+  </header>
+  <main id="app" tabindex="-1"></main>
+  <aside id="drawer" class="drawer" aria-hidden="true" aria-label="Source passage">
+    <div class="drawer-head">
+      <div>
+        <div class="drawer-kicker" id="drawer-kicker"></div>
+        <h2 id="drawer-title"></h2>
+      </div>
+      <button class="icon-btn" id="drawer-close" type="button" aria-label="Close source panel"><i class="ph ph-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+  </aside>
+  <div class="tooltip" id="tooltip" role="status" hidden></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
