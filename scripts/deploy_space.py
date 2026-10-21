@@ -98,16 +98,22 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp)
+        (out / "stage").mkdir()
         for f in files:
-            (out / f).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(ROOT / f, out / f)
+            (out / "stage" / f).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / f, out / "stage" / f)
         for dst, src in SPACE_FILES.items():
-            shutil.copy2(ROOT / src, out / dst)
+            shutil.copy2(ROOT / src, out / "stage" / dst)
         # Free accounts: ZeroGPU Gradio Spaces only. Created private; making it public is the owner's call.
         subprocess.run(["hf", "repos", "create", args.space, "--type", "space", "--sdk", "gradio", "--flavor", "zero-a10g", "--private", "--exist-ok"], check=True)
+        # On Windows the CLI expands wildcard arguments against the working directory, so run it
+        # from an empty one: "*" then reaches the Hub as a pattern (remove files no longer deployed).
+        empty = Path(tmp) / ".cwd"
+        empty.mkdir()
         subprocess.run(
-            ["hf", "upload", args.space, str(out), ".", "--repo-type", "space", "--delete", "*", "--commit-message", f"Deploy {commit}"],
+            ["hf", "upload", args.space, str(out / "stage"), ".", "--repo-type", "space", "--delete", "*", "--commit-message", f"Deploy {commit}"],
             check=True,
+            cwd=empty,
         )
     print(f"https://huggingface.co/spaces/{args.space}")
     return 0
