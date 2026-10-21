@@ -19,7 +19,7 @@ QASPER (CC-BY-4.0) with injected distractor passages.
 What you can do here today, with no model provider and no API key:
 
 - **Start here** on the overview: questions chosen by a fixed rule from the retrieval diagnostic
-  (BM25 keeps all gold evidence with no noise but loses it with 50 distractors), plus
+  (BM25 fits all of their gold evidence into the budget with no noise, but not with 50 distractors), plus
   unanswerable ones.
 - **See the evidence problem** for any of the 130 frozen questions at 0, 10, 25 or 50 injected
   distractor chunks: where the gold evidence sits, and which chunks BM25 top-k and a

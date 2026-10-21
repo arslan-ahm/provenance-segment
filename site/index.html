@@ -257,7 +257,7 @@
             <p class="note" style="padding:0 16px 14px">Share of verbatim annotator evidence entailed, on validation data. Chosen before any prediction; the test-split figure (65.0% for 3-sentence windows) is reported as observed.</p>
           </div>
         </div>
-        <p class="note">Even good retrieval loses half of the gold evidence by 50 distractors. The segment-based systems read every chunk, so their losses move to filtering, merging and answering, which the main experiment measures.</p>
+        <p class="note">With 50 distractors, BM25 keeps only 52% of the gold evidence inside the budget. The segment-based systems read every chunk, so their losses move to filtering, merging and answering, which the main experiment measures.</p>
         <div class="pending">
           <i class="ph ph-hourglass-medium" aria-hidden="true"></i>
           <div>

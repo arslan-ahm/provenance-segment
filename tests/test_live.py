@@ -74,7 +74,7 @@ def test_featured_picks_noise_losses_then_unanswerable_in_stable_order():
     )
     picks = featured(r, questions, n_answerable=4, n_unanswerable=2)
     assert [p["qid"] for p in picks] == ["b", "f", "u1", "u2"]
-    assert "loses it with 50 distractors" in picks[0]["reason"] and "abstain" in picks[2]["reason"]
+    assert "but not with 50 distractors" in picks[0]["reason"] and "abstain" in picks[2]["reason"]
 
 
 def test_featured_respects_limits_and_empty_rows():
@@ -188,6 +188,7 @@ def test_api_featured_without_diagnostics_lists_only_unanswerable(built):  # noq
 
 def test_api_check_end_to_end(built, fake_ce, monkeypatch):  # noqa: F811
     monkeypatch.setattr(live, "ClaimChecker", ClaimChecker)
+    monkeypatch.setattr("provseg.app.server.nli_available", lambda: True)  # CI installs no `nli` extra; the encoder is faked
     client = TestClient(create_app(built.cfg.runs_dir))
     d = client.get("/api/runs/t/questions/q-bleu?noise=3").json()
     gold = d["gold_chunk_ids"][0]
@@ -203,8 +204,20 @@ def test_api_check_end_to_end(built, fake_ce, monkeypatch):  # noqa: F811
     assert client.post("/api/runs/t/check", json={**body, "claim": " "}).status_code == 400
     assert client.post("/api/runs/t/check", json={**body, "chunk_ids": []}).status_code == 400
 
-    monkeypatch.setenv("PROVSEG_LIVE_NLI", "0")
+    monkeypatch.setattr("provseg.app.server.nli_available", lambda: False)
     assert client.get("/api/health").json()["live_nli"] is False
     assert client.post("/api/runs/t/check", json=body).status_code == 503
     no_nli = client.post("/api/runs/t/check", json={**body, "nli": False})
     assert no_nli.status_code == 200 and no_nli.json()["nli"] is None
+
+
+def test_nli_switch_reads_env_and_package(monkeypatch):
+    from provseg.app import server
+
+    monkeypatch.setattr(server.importlib.util, "find_spec", lambda name: object())
+    monkeypatch.setenv("PROVSEG_LIVE_NLI", "0")
+    assert server.nli_available() is False
+    monkeypatch.delenv("PROVSEG_LIVE_NLI")
+    assert server.nli_available() is True
+    monkeypatch.setattr(server.importlib.util, "find_spec", lambda name: None)
+    assert server.nli_available() is False

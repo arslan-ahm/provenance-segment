@@ -50,14 +50,14 @@ def budget_contexts(question: str, chunks: list[Chunk], budget: int, gold: set[s
 
 def featured(retrieval_rows: list[dict], questions: dict, n_answerable: int = 4, n_unanswerable: int = 2, noise: int = 50) -> list[dict]:
     """Answerable questions whose gold evidence BM25 fits fully into the budget without noise
-    but loses at ``noise`` distractors (the effect the project studies), then unanswerable ones.
+    but only partly (or not at all) at ``noise`` distractors (the effect the project studies), then unanswerable ones.
     Ties are broken by qid so the selection is stable."""
     full = defaultdict(dict)
     for r in retrieval_rows:
         if r["method"] == "bm25":
             full[r["qid"]][r["noise_level"]] = r["all_gold_in_context"]
     lost = sorted(qid for qid, by in full.items() if by.get(0) == 1.0 and by.get(noise) == 0.0 and qid in questions)
-    picks = [{"qid": q, "reason": f"BM25 keeps all gold evidence with no noise and loses it with {noise} distractors"} for q in lost[:n_answerable]]
+    picks = [{"qid": q, "reason": f"BM25 fits all gold evidence into the budget with no noise, but not with {noise} distractors"} for q in lost[:n_answerable]]
     unans = sorted(qid for qid, q in questions.items() if q.unanswerable_all)
     picks += [{"qid": q, "reason": "Every annotator marked it unanswerable: a faithful system should abstain"} for q in unans[:n_unanswerable]]
     return picks

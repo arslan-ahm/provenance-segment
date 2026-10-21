@@ -5,7 +5,7 @@ FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:0.11.9 /uv /uvx /bin/
 
-RUN useradd -m -u 1000 app
+RUN useradd -m -u 1000 app && mkdir -p /home/app/provseg && chown app:app /home/app/provseg
 USER app
 WORKDIR /home/app/provseg
 ENV UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1 \
