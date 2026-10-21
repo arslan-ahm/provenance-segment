@@ -79,6 +79,11 @@ class CachedClient:
         with self._lock:
             os.replace(tmp, p)
 
+    def invalidate(self, key: str) -> None:
+        """Forget a stored response (used when it turned out to be unusable)."""
+        with self._lock:
+            self._path(key).unlink(missing_ok=True)
+
     def complete(self, request: LLMRequest) -> LLMResponse:
         key = request_key(self.spec, request)
         hit = self.get(key)

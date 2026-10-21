@@ -35,6 +35,8 @@ def main() -> None:
     ap.add_argument("--n", type=int, default=60)
     ap.add_argument("--model", default="cross-encoder/nli-deberta-v3-small")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--windows", default="3", help="comma-separated window sizes in sentences, e.g. 1,3")
+    ap.add_argument("--out", default=None, help="output file name inside <run>/diagnostics/")
     a = ap.parse_args()
     run = Path(a.run)
     chunks = {r["chunk_id"]: r for r in rows(run / "doc_chunks.jsonl")}
@@ -54,7 +56,8 @@ def main() -> None:
             break
     rng.shuffle(cases)
     cases = cases[: a.n]
-    v = NLIVerifier(a.model)
+    sizes = tuple(int(x) for x in a.windows.split(","))
+    v = NLIVerifier(a.model, window_sentences=sizes)
     t0 = time.perf_counter()
     out = []
     for qid, claim, gold_text in cases:
@@ -66,12 +69,13 @@ def main() -> None:
     n = len(out)
     summary = {
         "model": a.model,
+        "window_sentences": list(sizes),
         "n": n,
         "gold_entailed_rate": sum(o["gold"] == "entailed" for o in out) / n,
         "distractor_entailed_rate": sum(o["distractor"] == "entailed" for o in out) / n,
         "seconds_per_pair_cpu": round(secs / (2 * n), 3),
     }
-    dest = run / "diagnostics" / "verifier_sanity.json"
+    dest = run / "diagnostics" / (a.out or "verifier_sanity.json")
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps({"summary": summary, "cases": out}, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))

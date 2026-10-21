@@ -40,6 +40,7 @@ class VerifierConfig(BaseModel):
     model_ref: str | None = None  # for kind=llm: key into `models`
     entail_threshold: float = 0.5
     contradict_threshold: float = 0.5
+    window_sentences: list[int] = Field(default_factory=lambda: [3])
 
 
 class JudgeConfig(BaseModel):

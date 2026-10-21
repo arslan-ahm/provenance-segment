@@ -107,6 +107,12 @@ def call_structured[T: BaseModel](
         try:
             return out_model.model_validate(extract_json(resp2.text))
         except (ValueError, ValidationError) as e:
+            # Do not keep unusable replies in the cache, or a resumed run would replay the same failure.
+            invalidate = getattr(client, "invalidate", None)
+            if invalidate is not None:
+                for key in (resp.cache_key, resp2.cache_key):
+                    if key:
+                        invalidate(key)
             truncated = resp2.stop_reason in ("max_tokens", "length")
             why = f" (output truncated at max_tokens={max_tokens}; raise it in configs/models.yaml)" if truncated else ""
             raise LLMError(f"{stage}: unparseable structured output after repair{why}: {e}") from e

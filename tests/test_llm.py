@@ -185,3 +185,15 @@ def test_truncation_is_named_in_the_error():
 
     with pytest.raises(LLMError, match="truncated at max_tokens"):
         call_structured(Truncating(route=lambda r: ""), None, "s", "SYS", "u", Out)
+
+
+def test_unparseable_replies_are_dropped_from_the_cache_so_a_rerun_retries(tmp_path):
+    replies = iter(["garbage", "still garbage", '{"x": 7}', "unused"])
+    fake = FakeLLM(route=lambda r: next(replies))
+    cached = CachedClient(fake, tmp_path)
+    with pytest.raises(LLMError):
+        call_structured(cached, None, "s", "SYS", "u", Out)
+    assert list(tmp_path.rglob("*.json")) == []
+    # The resumed run asks the provider again instead of replaying the failure.
+    assert call_structured(cached, None, "s", "SYS", "u", Out).x == 7
+    assert len(fake.requests) == 3

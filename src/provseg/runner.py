@@ -199,7 +199,7 @@ class Experiment:
         if need_verifier:
             v = cfg.verifier
             if v.kind == "nli":
-                verifier = NLIVerifier(v.model, v.entail_threshold, v.contradict_threshold)
+                verifier = NLIVerifier(v.model, v.entail_threshold, v.contradict_threshold, tuple(v.window_sentences))
             else:
                 verifier = LLMVerifier(make_client(cfg.models[v.model_ref or cfg.base_model], cfg.cache_dir, offline))
         return Resources(base=base, verifier=verifier, dense=DenseRanker() if need_dense else None, note_workers=cfg.note_workers)

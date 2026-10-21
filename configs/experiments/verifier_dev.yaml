@@ -1,0 +1,14 @@
+# Development-only run on the VALIDATION split for choosing verifier settings (never reported as a result).
+name: verifier_dev
+models_file: ../models.yaml
+data: {raw_dir: data/raw, processed_dir: data/processed, split: validation, pool_split: train}
+sample: {n_answerable: 100, n_unanswerable: 0, seed: 101, max_per_doc: 2}
+noise: {levels: [0, 10], mode: random, seed: 7}
+context_budget: 2048
+base_model: base
+verifier: {kind: nli, model: cross-encoder/nli-deberta-v3-small}
+judge: {kind: llm, model_ref: judge}
+systems:
+  - {name: provseg, kind: provseg}
+runs_dir: runs
+cache_dir: cache/llm

@@ -43,11 +43,17 @@ def strip_headings(text: str) -> str:
     return "\n".join(line for line in text.split("\n") if not line.startswith("§ ")).strip()
 
 
-def windows(text: str, size: int = 3) -> list[str]:
+def windows(text: str, size: int | tuple[int, ...] = 3) -> list[str]:
+    """Sliding windows of ``size`` sentences; several sizes give the union (deduplicated, in order)."""
+    sizes = (size,) if isinstance(size, int) else size
     sents = split_sentences(strip_headings(text).replace("\n\n", " "))
-    if len(sents) <= size:
-        return [" ".join(sents)] if sents else []
-    return [" ".join(sents[i : i + size]) for i in range(len(sents) - size + 1)]
+    out: list[str] = []
+    for k in sizes:
+        if len(sents) <= k:
+            out.extend([" ".join(sents)] if sents else [])
+        else:
+            out.extend(" ".join(sents[i : i + k]) for i in range(len(sents) - k + 1))
+    return list(dict.fromkeys(out))
 
 
 @lru_cache(maxsize=2)
@@ -63,7 +69,7 @@ class NLIVerifier:
         model_name: str = "cross-encoder/nli-deberta-v3-small",
         entail_threshold: float = 0.5,
         contradict_threshold: float = 0.5,
-        window_sentences: int = 3,
+        window_sentences: int | tuple[int, ...] = 3,
     ):
         self.model_name = model_name
         self.name = f"nli:{model_name}"
