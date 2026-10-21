@@ -23,11 +23,18 @@ unsupported answers in long-document QA, without a long-context model?*
 The pre-registered hypothesis, data, settings and metrics are in
 [docs/PROTOCOL.md](docs/PROTOCOL.md).
 
+| | |
+|---|---|
+| Interactive demo | https://huggingface.co/spaces/ARslan-Ahamd/provenance-segment |
+| Project page | https://arslan-ahm.github.io/provenance-segment/ |
+| Technical report | [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) |
+| Companion project | [GraphTrace-Bench](https://github.com/arslan-ahm/graphtrace-bench) |
+
 ## Status
 
 | Part | State |
 |---|---|
-| Pipeline, four systems, ablations, evaluation, statistics, report generator | built, 89 tests passing |
+| Pipeline, four systems, ablations, evaluation, statistics, report generator | built, 104 tests passing |
 | Frozen sample and noisy instances (`runs/main_v1/`) | **built from real QASPER data and committed** |
 | Retrieval diagnostic (no LLM) | **run on real data**, results below |
 | NLI verifier sanity check (no LLM) | **run on real data**: 3-sentence windows entailed only 65% of verbatim evidence on test, so window sizes were re-chosen on validation (100% / 5% false entailment); see `docs/PROTOCOL.md` |
@@ -119,20 +126,35 @@ content-addressed cache (`cache/llm/`), so `--offline` replays a run byte for by
 | `src/provseg/verification.py` | NLI and LLM verifiers (claims vs original source) |
 | `src/provseg/evaluation/` | official QASPER scoring, judge, metrics, bootstrap/permutation statistics, failure mining |
 | `src/provseg/llm/` | Anthropic (official SDK) and OpenAI-compatible clients, strict JSON, raw-call cache |
-| `src/provseg/app/` | read-only explorer (FastAPI + static front end) |
+| `src/provseg/app/` | explorer (FastAPI + static front end) and its model-free live checks (`live.py`) |
+| `site/`, `space/`, `scripts/deploy_space.py` | project page, Space card, Space deployment |
 | `configs/` | models and pre-registered experiments |
 | `runs/main_v1/` | frozen sample, instances, distractors, diagnostics |
 | `docs/` | protocol, technical report, 5-minute demo script |
 
-## Hosting the explorer
+## Hosting
 
-The explorer never calls a model, so it can be public. On a Hugging Face Space (Docker SDK)
-or any container host:
+**Explorer (Hugging Face Space).** The explorer never calls a model provider, so it can be
+public. Besides the committed runs it offers model-free checks: the contexts the `direct` and
+`rag_bm25` systems would build under the budget, exact quote anchoring, and the project's NLI
+verifier run on CPU against the original passages (`PROVSEG_LIVE_NLI=0` turns that off). The
+`Dockerfile` bakes the NLI model into the image. Publish with the `hf` CLI (`hf auth login` first):
 
 ```bash
-docker build -t provseg-explorer .
-docker run -p 7860:7860 provseg-explorer
+uv run python scripts/deploy_space.py --space ARslan-Ahamd/provenance-segment --dry-run
+uv run python scripts/deploy_space.py --space ARslan-Ahamd/provenance-segment
 ```
+
+The script uploads the committed `Dockerfile`, project files, `src/` and `runs/`, with
+`space/README.md` as the Space card. Any container host works too:
+`docker build -t provseg-explorer . && docker run -p 7860:7860 provseg-explorer`.
+
+**Project page (GitHub Pages).** `site/` is a static page deployed by
+`.github/workflows/pages.yml`. Enable it once under *Settings > Pages > Source: GitHub Actions*.
+
+**Automation.** `.github/workflows/ci.yml` runs lint and tests on every push.
+`.github/workflows/space.yml` re-deploys the Space when `src/`, `runs/` or `space/` change on
+`main`, if the repository has an `HF_TOKEN` secret (a write token); without it the job is skipped.
 
 ## What is in git
 

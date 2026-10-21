@@ -29,6 +29,7 @@ anthropic = [
 ]
 nli = [
     "sentence-transformers>=6.1.0",
+    "torch>=2.14",
 ]
 app = [
     "fastapi>=0.156.5",
@@ -58,3 +59,12 @@ ignore = ["E501", "B008", "B905"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+# CPU-only PyTorch everywhere (the NLI verifier runs on CPU; avoids multi-GB CUDA wheels in the Space image).
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]

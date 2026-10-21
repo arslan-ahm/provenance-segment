@@ -1,22 +1,28 @@
 """Read-only JSON API and static front end for exploring experiment runs.
 
-The app never calls a model: it serves what is on disk under ``runs/<name>/``, so it
-can be hosted publicly (for example on a Hugging Face Space) without API keys.
+The app never calls a model provider: it serves what is on disk under ``runs/<name>/``
+plus model-free checks (budgeted baseline contexts, quote anchoring and the local NLI
+verifier, see ``live.py``), so it can be hosted publicly (for example on a Hugging Face
+Space) without API keys. Set ``PROVSEG_LIVE_NLI=0`` to switch the NLI check off.
 """
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import os
 import threading
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 
 from ..config import ExperimentConfig
 from ..runner import Experiment, read_jsonl
 from ..systems import make_handle
+from .live import MAX_CLAIM_CHARS, MAX_SOURCES, ClaimChecker, LiveError, budget_contexts, featured, handles_for
 
 STATIC = Path(__file__).parent / "static"
 
@@ -54,6 +60,18 @@ class RunStore:
             return self._cache[name]
 
 
+class CheckIn(BaseModel):
+    qid: str
+    noise: int = 0
+    claim: str = Field(max_length=MAX_CLAIM_CHARS * 2)
+    chunk_ids: list[str] = Field(max_length=MAX_SOURCES * 2)
+    nli: bool = True
+
+
+def nli_available() -> bool:
+    return os.environ.get("PROVSEG_LIVE_NLI", "1") != "0" and importlib.util.find_spec("sentence_transformers") is not None
+
+
 def _json(path: Path):
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
 
@@ -61,10 +79,28 @@ def _json(path: Path):
 def create_app(runs_dir: str | Path = "runs") -> FastAPI:
     store = RunStore(Path(runs_dir))
     app = FastAPI(title="Provenance-Segment explorer", docs_url="/api/docs", redoc_url=None)
+    checkers: dict[str, ClaimChecker] = {}
+    checkers_lock = threading.Lock()
+
+    def checker(exp: Experiment) -> ClaimChecker:
+        v = exp.cfg.verifier
+        key = f"{v.model}|{v.entail_threshold}|{v.contradict_threshold}|{v.window_sentences}"
+        with checkers_lock:
+            if key not in checkers:
+                checkers[key] = ClaimChecker(v.model, v.entail_threshold, v.contradict_threshold, tuple(v.window_sentences))
+            return checkers[key]
+
+    if os.environ.get("PROVSEG_WARM_NLI") == "1" and nli_available():
+        # Load the verifier in the background so the first visitor's check does not pay for it.
+        def warm():
+            for name in store.names():
+                checker(store.get(name)).verifier.score_pairs([("A warm-up premise.", "A warm-up claim.")])
+
+        threading.Thread(target=warm, daemon=True).start()
 
     @app.get("/api/health")
     def health():
-        return {"ok": True, "runs": len(store.names())}
+        return {"ok": True, "runs": len(store.names()), "live_nli": nli_available()}
 
     @app.get("/api/runs")
     def runs():
@@ -173,7 +209,35 @@ def create_app(runs_dir: str | Path = "runs") -> FastAPI:
             "noise_levels": sorted({k for (qq, k) in exp.instances if qq == qid}),
             "chunks": chunks,
             "predictions": preds,
+            "computed_contexts": budget_contexts(q.question, [exp.chunk_by_id[c] for c in ids], exp.cfg.context_budget, set(gold)),
         }
+
+    @app.get("/api/runs/{name}/featured")
+    def featured_questions(name: str):
+        exp = store.get(name)
+        rows = read_jsonl(exp.dir / "diagnostics" / "retrieval_rows.jsonl")
+        out = []
+        for f in featured(rows, exp.questions):
+            q = exp.questions[f["qid"]]
+            out.append({**f, "question": q.question, "title": exp.documents.get(q.doc_id, {}).get("title", q.doc_id), "unanswerable": q.unanswerable_all})
+        return out
+
+    @app.post("/api/runs/{name}/check")
+    def check(name: str, body: CheckIn):
+        exp = store.get(name)
+        ids = exp.instances.get((body.qid, body.noise))
+        if ids is None:
+            raise HTTPException(404, "unknown question or noise level")
+        allowed = set(ids)
+        if not set(body.chunk_ids) <= allowed:
+            raise HTTPException(400, "every passage must belong to this question's instance")
+        use_nli = body.nli and nli_available()
+        if body.nli and not use_nli:
+            raise HTTPException(503, "the NLI verifier is not available on this host (install the `nli` extra)")
+        try:
+            return checker(exp).check(body.claim, [exp.chunk_by_id[c] for c in dict.fromkeys(body.chunk_ids)], handles_for(ids), nli=use_nli)
+        except LiveError as e:
+            raise HTTPException(400, str(e)) from e
 
     @app.get("/api/runs/{name}/chunks/{chunk_id}")
     def chunk(name: str, chunk_id: str):

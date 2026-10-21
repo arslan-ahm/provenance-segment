@@ -119,6 +119,17 @@ async function renderOverview() {
 
   const sections = [head, stats];
 
+  const feats = await api(`/runs/${encodeURIComponent(run.name)}/featured`).catch(() => []);
+  if (feats.length) {
+    sections.push(h("section", { class: "section" },
+      h("h2", {}, "Start here"),
+      h("p", { class: "lede" }, "Questions picked by a fixed rule from the retrieval diagnostic below, not by hand. Open one to see where its evidence sits among the distractors, and test any claim against the source passages."),
+      h("div", { class: "featured" }, feats.map((f) => h("a", { class: "feat", href: `#/questions/${encodeURIComponent(f.qid)}?noise=${f.unanswerable ? 0 : 50}` },
+        h("div", { class: "q" }, f.question),
+        h("div", { class: "t" }, f.title),
+        h("div", { class: "why" }, icon(f.unanswerable ? "prohibit" : "chart-line-down"), f.reason))))));
+  }
+
   // Retrieval diagnostic (no LLM involved)
   if (s.retrieval) {
     const t = s.retrieval.table;
@@ -218,16 +229,26 @@ function questionDetail(d) {
     const inCtx = new Set(p.context.flatMap((c) => c.chunk_ids));
     rows.push(h("div", { class: "strip-row" }, h("div", { class: "name", title: p.system }, p.system), cells(d.chunks, inCtx, d, p)));
   }
+  const cc = d.computed_contexts;
+  const ran = new Set(d.predictions.map((p) => p.system));
+  const computed = cc ? [["rag_bm25", "BM25 top-k"], ["direct", "First chunks"]].filter(([k]) => !ran.has(k)) : [];
+  for (const [k, label] of computed) {
+    rows.push(h("div", { class: "strip-row" }, h("div", { class: "name", title: `${k}: built with the system's own ranking and token budget, no model call` }, label), cells(d.chunks, new Set(cc[k].chunk_ids), d)));
+  }
+  const share = (c) => (c.tokens ? Math.round((100 * c.distractor_tokens) / c.tokens) : 0);
+  const fitLine = computed.length && cc.rag_bm25.gold_total
+    ? h("p", { class: "fit" }, `Within the ${cc.budget}-token budget, BM25 fits ${cc.rag_bm25.gold_in_context} of ${cc.rag_bm25.gold_total} gold chunks (distractors take ${share(cc.rag_bm25)}% of it); taking the first chunks fits ${cc.direct.gold_in_context}. The computed rows use each system's own ranking and budget, with no model call.`)
+    : null;
   const strip = h("div", { class: "panel" }, h("div", { class: "docstrip" }, rows),
     h("div", { class: "strip-legend" },
       h("span", {}, h("span", { class: "cell gold" }), "gold evidence"),
       h("span", {}, h("span", { class: "cell distractor" }), "injected distractor"),
-      h("span", {}, h("span", { class: "cell in" }), "in the system's final context")));
+      h("span", {}, h("span", { class: "cell in" }), "in the system's final context")), fitLine);
 
   const cards = d.predictions.length
     ? d.predictions.map((p) => answerCard(p, d, handleOf, chunkOf))
-    : [h("div", { class: "empty" }, icon("hourglass-medium"), h("b", {}, "No predictions for this question at this noise level yet."), h("span", {}, "The document, gold evidence and distractors above are already fixed by `provseg build`."))];
-  return [head, toolbar, strip, h("div", { class: "answers" }, cards)];
+    : [h("div", { class: "empty" }, icon("hourglass-medium"), h("b", {}, "No model answers for this question at this noise level yet."), h("span", {}, "System answers with their citations and verifier decisions appear here once the experiment has been run with a model provider. Everything above is computed without a model."))];
+  return [head, toolbar, strip, claimChecker(d), h("div", { class: "answers" }, cards)];
 }
 
 function cells(chunks, inCtx, d, pred) {
@@ -273,6 +294,104 @@ function answerCard(p, d, handleOf, chunkOf) {
     !judged && p.statements.length ? h("div", { class: "callout info" }, icon("info"), "Not judged yet: run `provseg judge` to score citation support.") : null);
 }
 
+// ---------- live claim check (local NLI verifier, no model provider) ----------
+const MAX_SOURCES = 4;
+const pct0 = (v) => `${Math.round(100 * v)}%`;
+
+function claimChecker(d) {
+  const byId = Object.fromEntries(d.chunks.map((c) => [c.chunk_id, c]));
+  const answers = [...new Set(d.references.map((r) => r.answer).filter((a) => a && a !== "Unanswerable" && a.length <= 600))];
+  const evidence = [...new Set(d.references.flatMap((r) => r.highlighted_evidence).filter((e) => e && e.length >= 12 && e.length <= 600))];
+  const presets = [...answers.slice(0, 3).map((t) => ["Annotator answer", t]), ...evidence.slice(0, 3).map((t) => ["Highlighted evidence", t])];
+  const bm = d.computed_contexts?.rag_bm25;
+  const topBm = bm ? Object.entries(bm.scores).sort((a, b) => b[1] - a[1]).map(([id]) => id) : [];
+  let selected = d.gold_chunk_ids.length ? d.gold_chunk_ids.filter((id) => byId[id]).slice(0, MAX_SOURCES) : topBm.slice(0, 1);
+
+  const claim = h("textarea", { id: "claim-input", rows: "3", maxlength: "600", "aria-describedby": "claim-help" });
+  claim.value = evidence[0] ?? answers[0] ?? "";
+  const presetRow = h("div", { class: "presets" }, presets.map(([kind, text]) =>
+    h("button", { type: "button", class: "preset", title: text, onclick: () => { claim.value = text; claim.focus(); } }, h("span", { class: "k" }, kind), h("span", { class: "v" }, text))));
+  const chosen = h("div", { class: "chosen", "aria-live": "polite" });
+  const add = h("select", { "aria-label": "Add a source passage" });
+  const result = h("div", { class: "check-result", "aria-live": "polite" });
+  const verifyBtn = h("button", { type: "button", class: "btn primary" }, icon("seal-check"), "Verify");
+  const quoteBtn = h("button", { type: "button", class: "btn" }, icon("text-aa"), "Find as quote");
+
+  const tag = (c) => `${c.handle}  ${c.heading}${c.is_gold ? "  (gold)" : ""}${c.is_distractor ? "  (distractor)" : ""}`;
+  const redraw = () => {
+    chosen.replaceChildren(...selected.map((id) => h("span", { class: `pick${byId[id].is_distractor ? " distractor" : ""}` },
+      h("button", { type: "button", class: "cite", title: id, onclick: () => openSource(id, { d }) }, byId[id].handle),
+      h("span", { class: "h" }, byId[id].heading),
+      byId[id].is_gold ? h("span", { class: "badge warn" }, "gold") : null,
+      byId[id].is_distractor ? h("span", { class: "badge neutral" }, "distractor") : null,
+      h("button", { type: "button", class: "x", "aria-label": `Remove ${byId[id].handle}`, onclick: () => { selected = selected.filter((x) => x !== id); redraw(); } }, icon("x")))));
+    if (!selected.length) chosen.append(h("span", { class: "hint" }, "No passage chosen yet."));
+    add.replaceChildren(h("option", { value: "" }, selected.length >= MAX_SOURCES ? `At most ${MAX_SOURCES} passages` : "Add a passage"),
+      ...d.chunks.filter((c) => !selected.includes(c.chunk_id)).map((c) => h("option", { value: c.chunk_id }, tag(c))));
+    add.disabled = selected.length >= MAX_SOURCES;
+  };
+  add.addEventListener("change", () => { if (add.value) { selected = [...selected, add.value].slice(0, MAX_SOURCES); redraw(); } });
+  redraw();
+
+  async function run(nli) {
+    const text = claim.value.trim();
+    if (!text) { result.replaceChildren(h("div", { class: "callout warn" }, icon("warning"), "Write a claim first.")); return; }
+    if (!selected.length) { result.replaceChildren(h("div", { class: "callout warn" }, icon("warning"), "Choose at least one source passage.")); return; }
+    verifyBtn.disabled = quoteBtn.disabled = true;
+    result.replaceChildren(h("div", { class: "pending" }, h("div", { class: "skeleton", style: "height:14px;width:60%" }), h("div", { class: "skeleton", style: "height:14px;width:85%" }),
+      h("span", {}, nli ? "Running the NLI verifier on CPU. This usually takes 10 to 30 seconds, longer on the first check while the model loads." : "Searching the passages.")));
+    try {
+      const r = await fetch(`/api/runs/${encodeURIComponent(state.run.name)}/check`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ qid: d.qid, noise: d.noise_level, claim: text, chunk_ids: selected, nli }) });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || `HTTP ${r.status}`);
+      result.replaceChildren(...checkResult(await r.json(), d, byId));
+    } catch (e) {
+      result.replaceChildren(h("div", { class: "callout warn" }, icon("warning-circle"), `The check failed: ${e.message || e}`));
+    } finally {
+      verifyBtn.disabled = !state.liveNli;
+      quoteBtn.disabled = false;
+    }
+  }
+  verifyBtn.addEventListener("click", () => run(true));
+  quoteBtn.addEventListener("click", () => run(false));
+  verifyBtn.disabled = !state.liveNli;
+
+  return h("section", { class: "panel checker", "aria-labelledby": "checker-title" },
+    h("h2", { id: "checker-title" }, "Check a claim against the source"),
+    h("p", { class: "lede" }, "This is Provenance-Segment's verification step, run live with no model provider: exact quote anchoring, then the NLI verifier on the original text of the chosen passages (best of 1- and 3-sentence windows; supported at entailment 0.5 or above)."),
+    h("label", { for: "claim-input" }, "Claim"),
+    claim,
+    h("div", { id: "claim-help", class: "help" }, "Start from an annotator's answer or evidence, then edit it: change a number, negate it, or check it against a distractor instead."),
+    presets.length ? presetRow : null,
+    h("div", { class: "label-row" }, h("span", {}, "Source passages"), add),
+    chosen,
+    h("div", { class: "actions" }, verifyBtn, quoteBtn, state.liveNli ? null : h("span", { class: "hint" }, "The NLI verifier is off on this host; quote search still works.")),
+    result);
+}
+
+function checkResult(r, d, byId) {
+  const head = h("div", { class: "result-head" },
+    r.nli ? h("span", {}, verdictBadge(r.nli.label), h("span", { class: "score" }, `entailment ${pct0(r.nli.entail)}`),
+      r.nli.joint && r.nli.joint.entail >= r.nli.entail ? h("span", { class: "hint" }, "decided by the cited passages together") : null)
+      : h("span", { class: "score" }, "Quote search only"),
+    r.nli ? h("span", { class: "hint mono" }, r.nli.model) : null);
+  const rows = r.sources.map((s) => {
+    const c = byId[s.chunk_id];
+    const ranges = [];
+    if (s.quote.found) ranges.push([s.quote.start, s.quote.end]);
+    else if (s.nli?.window_start != null) ranges.push([s.nli.window_start, s.nli.window_end]);
+    const note = s.quote.found ? "The claim occurs verbatim at the highlighted offsets." : s.nli?.window_start != null ? "Highlighted: the window the verifier scored highest." : null;
+    return h("div", { class: "src-row" },
+      h("button", { type: "button", class: `cite${c?.is_distractor ? " distractor" : ""}`, title: "Open the passage", onclick: () => openSource(s.chunk_id, { d, ranges, rangeNote: note }) }, s.handle || s.chunk_id),
+      h("div", { class: "src-body" },
+        h("div", { class: "src-tags" },
+          s.quote.found ? h("span", { class: "badge good" }, icon("quotes"), `verbatim at characters ${s.quote.start} to ${s.quote.end}${s.quote.elided ? ", with an elision" : ""}`) : h("span", { class: "badge neutral" }, icon("quotes"), "not verbatim"),
+          s.nli ? h("span", { class: "score", title: `Highest contradiction over this passage's windows: ${pct0(s.nli.contradict)}` }, `entailment ${pct0(s.nli.entail)}`) : null,
+          c?.is_distractor ? h("span", { class: "badge neutral" }, "distractor") : null),
+        s.nli?.window ? h("blockquote", {}, s.nli.window) : null));
+  });
+  return [head, ...rows];
+}
+
 // ---------- source drawer ----------
 const drawer = document.getElementById("drawer");
 function closeDrawer() { drawer.classList.remove("open"); drawer.setAttribute("aria-hidden", "true"); }
@@ -311,6 +430,7 @@ async function openSource(chunkId, ctx) {
   const ranges = [];
   for (const n of ctx.pred?.trace?.notes || []) for (const q of n.evidence) if (q.verified && q.handle === meta?.handle && q.start != null) ranges.push([q.start, q.end]);
   for (const n of ctx.pred?.trace?.final_notes || []) for (const q of n.evidence) if (q.verified && q.handle === meta?.handle && q.start != null) ranges.push([q.start, q.end]);
+  for (const r of ctx.ranges || []) ranges.push(r);
   const headingEnd = c.text.indexOf("\n\n") + 2;
   const body = [
     c.is_distractor ? h("div", { class: "callout warn" }, icon("warning"), `Injected distractor from another paper: ${c.title}`) : h("div", { class: "callout info" }, icon("file-text"), c.title),
@@ -320,7 +440,8 @@ async function openSource(chunkId, ctx) {
     body.push(h("div", { class: "judgement" }, h("b", {}, "Cited for"), h("div", {}, ctx.statement.text),
       h("div", { class: "cites" }, verdictBadge(ctx.statement.verdict), ctx.judge ? judgeBadge(ctx.judge) : null)));
   }
-  if (ranges.length) body.push(h("div", { style: "color:var(--text-3);font-size:12px" }, `${ranges.length} quote(s) recorded by this system's notes are highlighted at their exact offsets.`));
+  if (ctx.rangeNote) body.push(h("div", { style: "color:var(--text-3);font-size:12px" }, ctx.rangeNote));
+  else if (ranges.length) body.push(h("div", { style: "color:var(--text-3);font-size:12px" }, `${ranges.length} quote(s) recorded by this system's notes are highlighted at their exact offsets.`));
   body.push(renderSource(c.text, ranges, c.overlap_chars ? headingEnd : -1, c.overlap_chars ? headingEnd + c.overlap_chars : -1));
   document.getElementById("drawer-body").replaceChildren(...body.filter(Boolean));
   drawer.classList.add("open");
@@ -337,6 +458,7 @@ async function boot() {
     app.replaceChildren(h("div", { class: "empty error" }, icon("plugs"), h("b", {}, "The explorer API is not reachable"), h("span", {}, String(e.message || e))));
     return;
   }
+  state.liveNli = await api("/health").then((x) => !!x.live_nli).catch(() => false);
   let saved = null;
   try { saved = localStorage.getItem("pe-run"); } catch {}
   state.run = state.runs.find((r) => r.name === saved) || state.runs.find((r) => r.has_metrics) || state.runs[0] || null;

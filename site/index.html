@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Provenance-Segment</title>
+  <meta name="description" content="Source-verifiable long-document question answering with short-context LLMs: every answer claim is checked against the exact passage it cites.">
+  <meta property="og:title" content="Provenance-Segment">
+  <meta property="og:description" content="Can chunk-level evidence tracking and claim verification reduce unsupported answers in long-document QA, without a long-context model?">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.1.0/400.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.1.0/500.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.1.0/600.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-mono@5.1.0/400.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f6f4; --surface: #fcfcfb; --surface-2: #efeee9; --line: #e2e1dc; --line-strong: #c9c8c1;
+      --text: #17171a; --text-2: #4d4c49; --text-3: #6a6963;
+      --accent: #2f5bd3; --accent-soft: #e6ecfb; --mark: #fdeba8;
+      --radius: 8px;
+      --sans: "Geist Sans", "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #121211; --surface: #1a1a19; --surface-2: #232321; --line: #2f2f2c; --line-strong: #45443f;
+        --text: #f0efec; --text-2: #c3c2b7; --text-3: #9b9a92;
+        --accent: #7d9ef0; --accent-soft: #1f2a46; --mark: #5a4a12;
+      }
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #121211; --surface: #1a1a19; --surface-2: #232321; --line: #2f2f2c; --line-strong: #45443f;
+      --text: #f0efec; --text-2: #c3c2b7; --text-3: #9b9a92;
+      --accent: #7d9ef0; --accent-soft: #1f2a46; --mark: #5a4a12;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { background: var(--bg); color: var(--text); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    h1, h2, h3 { margin: 0; letter-spacing: -0.015em; line-height: 1.15; }
+    p { margin: 0; }
+    code, .mono { font-family: var(--mono); font-size: 0.9em; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+    header.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+    header.top .wrap { height: 60px; display: flex; align-items: center; gap: 20px; }
+    .brand { display: flex; gap: 8px; align-items: center; font-weight: 600; color: var(--text); text-decoration: none; white-space: nowrap; }
+    .brand i { color: var(--accent); font-size: 20px; }
+    nav.links { margin-left: auto; display: flex; gap: 4px; align-items: center; }
+    nav.links a { color: var(--text-2); text-decoration: none; padding: 6px 10px; border-radius: var(--radius); font-size: 14px; }
+    nav.links a:hover { background: var(--surface-2); color: var(--text); }
+    .icon-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--text-2); cursor: pointer; font-size: 17px; }
+
+    .hero { padding: 72px 0 56px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+    .hero h1 { font-size: clamp(32px, 3.7vw, 46px); font-weight: 600; letter-spacing: -0.03em; }
+    .hero p.sub { margin-top: 18px; font-size: 18px; color: var(--text-2); max-width: 44ch; }
+    .ctas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: var(--radius); border: 1px solid var(--line-strong); background: var(--surface); color: var(--text); text-decoration: none; font-weight: 500; font-size: 15px; white-space: nowrap; }
+    .btn:hover { border-color: var(--accent); }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+    figure.shot { margin: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); box-shadow: 0 18px 50px rgb(23 23 26 / 0.10); }
+    figure.shot img { display: block; width: 100%; height: auto; aspect-ratio: 1000 / 1242; object-fit: cover; object-position: top; max-height: 560px; }
+    figure.shot .dark-img { display: none; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) figure.shot .light-img { display: none; } :root:not([data-theme="light"]) figure.shot .dark-img { display: block; } }
+    :root[data-theme="dark"] figure.shot .light-img { display: none; }
+    :root[data-theme="dark"] figure.shot .dark-img { display: block; }
+    figcaption { padding: 10px 14px; font-size: 13px; color: var(--text-3); border-top: 1px solid var(--line); }
+
+    section { padding: 64px 0; border-top: 1px solid var(--line); }
+    section h2 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; }
+    .lead { margin-top: 12px; color: var(--text-2); max-width: 68ch; }
+
+    .question { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+    blockquote.rq { margin: 0; font-size: clamp(22px, 2.6vw, 28px); line-height: 1.3; font-weight: 500; letter-spacing: -0.015em; }
+    .hyp { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; }
+    .hyp h3 { font-size: 15px; color: var(--text-2); font-weight: 500; }
+    .hyp p { margin-top: 8px; }
+    .hyp ol { margin: 12px 0 0; padding-left: 20px; color: var(--text-2); font-size: 15px; }
+    .hyp li + li { margin-top: 6px; }
+
+    .pipeline { margin-top: 32px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; counter-reset: step; }
+    .stage { position: relative; padding: 18px 18px 20px; border: 1px solid var(--line); background: var(--surface); }
+    .stage:first-child { border-radius: 12px 0 0 12px; }
+    .stage:last-child { border-radius: 0 12px 12px 0; }
+    .stage + .stage { border-left: 0; }
+    .stage + .stage::before { content: ""; position: absolute; left: -9px; top: 26px; width: 16px; height: 16px; background: var(--surface); border-top: 1px solid var(--line); border-right: 1px solid var(--line); transform: rotate(45deg); }
+    .stage i { font-size: 22px; color: var(--accent); }
+    .stage h3 { margin-top: 10px; font-size: 16px; }
+    .stage p { margin-top: 6px; font-size: 14px; color: var(--text-2); }
+    .stage.ours { background: var(--accent-soft); }
+    .stage.ours::before { background: var(--accent-soft); }
+    .systems { margin-top: 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .sys { padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--line); }
+    .sys b { font-family: var(--mono); font-size: 14px; font-weight: 400; }
+    .sys p { font-size: 14px; color: var(--text-2); margin-top: 4px; }
+    .sys.ours { border-color: var(--accent); }
+
+    .results { margin-top: 28px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .results .narrow { max-width: 560px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    caption { text-align: left; padding: 14px 16px 4px; font-weight: 600; white-space: normal; position: sticky; left: 0; max-width: calc(100vw - 34px); }
+    th, td { padding: 9px 16px; text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    thead th { color: var(--text-3); font-weight: 500; font-size: 13px; }
+    tbody tr { border-top: 1px solid var(--line); }
+    td { font-family: var(--mono); font-size: 13.5px; }
+    td:first-child { font-family: var(--sans); }
+    td .ci { display: block; color: var(--text-3); font-size: 11.5px; }
+    .note { margin-top: 10px; font-size: 13.5px; color: var(--text-3); }
+    .pending { margin-top: 28px; padding: 20px 22px; border: 1px dashed var(--line-strong); border-radius: 12px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; }
+    .pending i { font-size: 22px; color: var(--text-3); }
+    .pending p + p { margin-top: 6px; color: var(--text-2); font-size: 15px; }
+
+    .limits { margin-top: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; }
+    .limits div { padding: 16px 0; border-top: 1px solid var(--line); }
+    .limits h3 { font-size: 16px; }
+    .limits p { margin-top: 4px; color: var(--text-2); font-size: 15px; }
+
+    .resources { margin-top: 24px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .res { display: grid; gap: 6px; align-content: start; padding: 18px 20px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--text); text-decoration: none; }
+    .res:hover { border-color: var(--accent); }
+    .res i { font-size: 22px; color: var(--accent); }
+    .res b { font-weight: 600; }
+    .res span { color: var(--text-2); font-size: 14px; }
+    .res.big { grid-column: span 2; background: var(--accent-soft); }
+    pre.cite { margin: 24px 0 0; padding: 16px 18px; background: var(--surface-2); border-radius: 12px; overflow-x: auto; font: 13px/1.55 var(--mono); color: var(--text); }
+    footer { padding: 32px 0 48px; border-top: 1px solid var(--line); color: var(--text-3); font-size: 14px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .reveal { animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+      .reveal.d1 { animation-delay: 0.08s; }
+      @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    }
+    @media (max-width: 900px) {
+      .hero, .question, .results { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+      .hero { padding: 40px 0; }
+      .pipeline { grid-template-columns: minmax(0, 1fr); }
+      .stage, .stage:first-child, .stage:last-child { border-radius: 0; }
+      .stage:first-child { border-radius: 12px 12px 0 0; }
+      .stage:last-child { border-radius: 0 0 12px 12px; }
+      .stage + .stage { border-left: 1px solid var(--line); border-top: 0; }
+      .stage + .stage::before { left: 26px; top: -9px; transform: rotate(135deg); }
+      .systems, .limits { grid-template-columns: minmax(0, 1fr); }
+      .resources { grid-template-columns: minmax(0, 1fr); }
+      .res.big { grid-column: auto; }
+      section { padding: 48px 0; }
+    }
+    @media (max-width: 640px) {
+      .wrap { padding-left: 16px; padding-right: 16px; }
+      nav.links a.hide-sm { display: none; }
+      th, td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#"><i class="ph ph-quotes" aria-hidden="true"></i>Provenance-Segment</a>
+      <nav class="links" aria-label="Project links">
+        <a href="https://huggingface.co/spaces/ARslan-Ahamd/provenance-segment">Demo</a>
+        <a href="https://github.com/arslan-ahm/provenance-segment">Code</a>
+        <a class="hide-sm" href="https://github.com/arslan-ahm/provenance-segment/blob/main/docs/TECHNICAL_REPORT.md">Report</a>
+        <button class="icon-btn" id="theme" type="button" aria-label="Toggle colour theme"><i class="ph ph-circle-half" aria-hidden="true"></i></button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <div class="reveal">
+        <h1>Every answer claim, traced to the passage that proves it.</h1>
+        <p class="sub">Long-document question answering with short-context models, where each cited statement is checked against the original source text.</p>
+        <div class="ctas">
+          <a class="btn primary" href="https://huggingface.co/spaces/ARslan-Ahamd/provenance-segment"><i class="ph ph-play" aria-hidden="true"></i>Try the demo</a>
+          <a class="btn" href="https://github.com/arslan-ahm/provenance-segment"><i class="ph ph-github-logo" aria-hidden="true"></i>Read the code</a>
+        </div>
+      </div>
+      <figure class="shot reveal d1">
+        <img class="light-img" src="assets/explorer-light.webp" width="1000" height="1242" alt="The demo checking an annotator's evidence sentence against three gold passages of a QASPER paper with 50 injected distractors: verified at 95% entailment, found verbatim in passage P16.">
+        <img class="dark-img" src="assets/explorer-dark.webp" width="1000" height="1242" alt="" aria-hidden="true">
+        <figcaption>The demo on a real QASPER question with 50 injected distractor chunks.</figcaption>
+      </figure>
+    </div>
+
+    <section id="question">
+      <div class="wrap question">
+        <div>
+          <h2>The question</h2>
+          <blockquote class="rq" style="margin-top:18px">Can chunk-level evidence tracking and claim verification reduce unsupported answers in long-document QA, without a long-context model?</blockquote>
+          <p class="lead">Short-context models must compress a long document: retrieve a few chunks, or summarise every segment and merge the notes (Segment+, Shi et al., EMNLP 2024). Compression is where evidence is lost or invented, and a citation alone does not show that the source still says what the answer claims.</p>
+        </div>
+        <div class="hyp">
+          <h3>Pre-registered hypothesis, frozen 2026-10-21</h3>
+          <p>Against BM25 top-k RAG with the same 2,048-token context budget and base model, Provenance-Segment lowers the unsupported-claim rate on QASPER questions with 50 injected distractor chunks, while keeping answer F1 within 2 points.</p>
+          <ol>
+            <li>Paired difference in unsupported claims: 95% bootstrap CI below 0, permutation p &lt; 0.05.</li>
+            <li>Lower CI bound of the paired answer-F1 difference at least -2.0.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="method">
+      <div class="wrap">
+        <h2>How it works</h2>
+        <p class="lead">Provenance is kept at every compression step, and the final check reads the original text, never the model's notes.</p>
+        <div class="pipeline" role="list">
+          <div class="stage" role="listitem"><i class="ph ph-stack" aria-hidden="true"></i><h3>Chunk</h3><p>Section-aware chunks with stable IDs and the exact paragraphs each one owns.</p></div>
+          <div class="stage" role="listitem"><i class="ph ph-shuffle" aria-hidden="true"></i><h3>Inject noise</h3><p>0, 10, 25 or 50 chunks from other papers, nested and matched across systems.</p></div>
+          <div class="stage ours" role="listitem"><i class="ph ph-quotes" aria-hidden="true"></i><h3>Note and anchor</h3><p>Per-chunk notes; every quote located at character offsets or removed.</p></div>
+          <div class="stage ours" role="listitem"><i class="ph ph-git-merge" aria-hidden="true"></i><h3>Merge with provenance</h3><p>Merged facts keep their source chunk; invented links are dropped.</p></div>
+          <div class="stage ours" role="listitem"><i class="ph ph-seal-check" aria-hidden="true"></i><h3>Verify</h3><p>NLI checks each statement against its cited original text. Revise once, drop, or abstain.</p></div>
+        </div>
+        <div class="systems">
+          <div class="sys"><b>direct</b><p>First chunks in document order until the budget is full.</p></div>
+          <div class="sys"><b>rag_bm25</b><p>BM25 top-ranked chunks until the budget is full.</p></div>
+          <div class="sys"><b>segment</b><p>Segment+-style notes, filter and merge, no provenance checks.</p></div>
+          <div class="sys ours"><b>provseg</b><p>Anchored quotes, provenance-checked merges, claim verification.</p></div>
+        </div>
+        <p class="note">Same base model, answer prompt, citation format and 2,048-token budget for every system. Citations use neutral handles (P01, P02, ...), so distractors cannot be spotted by their label. A separate judge model scores citation support.</p>
+      </div>
+    </section>
+
+    <section id="results">
+      <div class="wrap">
+        <h2>Results so far</h2>
+        <p class="lead">Two experiments that need no language model have been run on the frozen sample. Means with 95% bootstrap confidence intervals.</p>
+        <div class="results">
+          <div class="table-wrap">
+            <table>
+              <caption>Gold evidence that fits into the 2,048-token budget (%, n = 100)</caption>
+              <thead><tr><th scope="col">Distractor chunks</th><th scope="col">0</th><th scope="col">10</th><th scope="col">25</th><th scope="col">50</th></tr></thead>
+              <tbody>
+                <tr><td>BM25 top-k</td><td>77.6<span class="ci">69.2 to 85.2</span></td><td>67.0<span class="ci">57.9 to 75.7</span></td><td>61.5<span class="ci">52.5 to 71.0</span></td><td>52.0<span class="ci">42.4 to 61.8</span></td></tr>
+                <tr><td>First chunks</td><td>42.8<span class="ci">33.5 to 52.0</span></td><td>19.2<span class="ci">12.2 to 27.5</span></td><td>8.5<span class="ci">4.0 to 14.5</span></td><td>3.0<span class="ci">0.5 to 6.5</span></td></tr>
+                <tr><td>Distractor share of BM25 budget</td><td>0.0</td><td>22.6</td><td>34.7</td><td>39.5</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-wrap narrow">
+            <table>
+              <caption>Verifier sanity check (n = 60)</caption>
+              <thead><tr><th scope="col">Windows</th><th scope="col">Own chunk</th><th scope="col">Distractor</th></tr></thead>
+              <tbody>
+                <tr><td>3 sentences</td><td>71.7</td><td>3.3</td></tr>
+                <tr><td>1 and 3 (adopted)</td><td>100.0</td><td>5.0</td></tr>
+              </tbody>
+            </table>
+            <p class="note" style="padding:0 16px 14px">Share of verbatim annotator evidence entailed, on validation data. Chosen before any prediction; the test-split figure (65.0% for 3-sentence windows) is reported as observed.</p>
+          </div>
+        </div>
+        <p class="note">Even good retrieval loses half of the gold evidence by 50 distractors. The segment-based systems read every chunk, so their losses move to filtering, merging and answering, which the main experiment measures.</p>
+        <div class="pending">
+          <i class="ph ph-hourglass-medium" aria-hidden="true"></i>
+          <div>
+            <p><b>Main comparison: not run yet.</b></p>
+            <p>Answer F1, citation precision, unsupported-claim rate, abstention and cost for all systems at every noise level need the base model (estimated at about $320 on <span class="mono">claude-opus-5-5</span>). No model result is shown anywhere until it has been produced by the published commands.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="limitations">
+      <div class="wrap">
+        <h2>Limitations</h2>
+        <div class="limits">
+          <div><h3>One dataset</h3><p>QASPER only, NLP papers. Generalisation to other long documents is not claimed.</p></div>
+          <div><h3>Synthetic noise</h3><p>Random distractors from other papers are easier than in-document noise; a BM25-similar variant is configured.</p></div>
+          <div><h3>Judged support</h3><p>Citation support is decided by an LLM judge, audited on 100 human-labelled pairs; a cross-family judge can be swapped in.</p></div>
+          <div><h3>Imperfect verifier</h3><p>NLI can miss subtle errors and reject valid paraphrases or multi-hop reasoning; both rates are measured, not assumed away.</p></div>
+          <div><h3>Token F1</h3><p>Penalises verbose but correct answers; every system gets the same concise-answer prompt.</p></div>
+          <div><h3>Same model family</h3><p>Base model and judge are both Claude models unless the cross-family judge is used.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="resources">
+      <div class="wrap">
+        <h2>Code, demo and report</h2>
+        <div class="resources">
+          <a class="res big" href="https://huggingface.co/spaces/ARslan-Ahamd/provenance-segment"><i class="ph ph-cursor-click" aria-hidden="true"></i><b>Interactive demo</b><span>Browse the 130 frozen questions at every noise level, and check any claim against its source passages with the project's verifier.</span></a>
+          <a class="res" href="https://github.com/arslan-ahm/provenance-segment"><i class="ph ph-github-logo" aria-hidden="true"></i><b>Repository</b><span>Code, configs, frozen runs and reproducible commands.</span></a>
+          <a class="res" href="https://github.com/arslan-ahm/provenance-segment/blob/main/docs/TECHNICAL_REPORT.md"><i class="ph ph-file-text" aria-hidden="true"></i><b>Technical report</b><span>Method, setup and results as they are produced.</span></a>
+          <a class="res" href="https://github.com/arslan-ahm/provenance-segment/blob/main/docs/PROTOCOL.md"><i class="ph ph-lock-simple" aria-hidden="true"></i><b>Protocol</b><span>Frozen sample, settings and metrics.</span></a>
+          <a class="res" href="https://arslan-ahm.github.io/graphtrace-bench/"><i class="ph ph-graph" aria-hidden="true"></i><b>GraphTrace-Bench</b><span>Companion project on verifiable multi-hop reasoning.</span></a>
+        </div>
+        <pre class="cite" aria-label="BibTeX citation">@misc{ahmad2026provenancesegment,
+  title  = {Provenance-Segment: Source-Verifiable Long-Document Question Answering with Short-Context LLMs},
+  author = {Ahmad, Arslan},
+  year   = {2026},
+  url    = {https://github.com/arslan-ahm/provenance-segment}
+}</pre>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Code MIT. QASPER (Dasigi et al., 2021) CC-BY-4.0.</span>
+      <span>Segment+: Shi et al., EMNLP 2024.</span>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      try { const t = localStorage.getItem("ps-theme"); if (t) root.dataset.theme = t; } catch {}
+      document.getElementById("theme").addEventListener("click", () => {
+        const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        root.dataset.theme = dark ? "light" : "dark";
+        try { localStorage.setItem("ps-theme", root.dataset.theme); } catch {}
+      });
+    })();
+  </script>
+</body>
+</html>

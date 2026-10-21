@@ -76,7 +76,8 @@ def test_static_front_end_is_served(built):
 def test_empty_runs_dir(tmp_path):
     client = TestClient(create_app(tmp_path / "missing"))
     assert client.get("/api/runs").json() == []
-    assert json.loads(client.get("/api/health").text) == {"ok": True, "runs": 0}
+    health = json.loads(client.get("/api/health").text)
+    assert health["ok"] is True and health["runs"] == 0 and isinstance(health["live_nli"], bool)
 
 
 def test_server_picks_up_new_predictions_without_restart(built):

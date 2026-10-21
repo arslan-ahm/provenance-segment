@@ -91,7 +91,8 @@ class NLIVerifier:
         li = self._label_index()
         return np.stack([probs[:, li["entailment"]], probs[:, li["contradiction"]]], axis=1)
 
-    def verify(self, claim: str, sources: list[str], meter: UsageMeter | None = None) -> Verdict:
+    def verify(self, claim: str, sources: list[str], meter: UsageMeter | None = None, with_windows: bool = False) -> Verdict:
+        """``with_windows`` adds the best-scoring window text per source to the detail (used by the demo app)."""
         per_source = [windows(s, self.window_sentences) for s in sources]
         flat = [(w, claim) for ws in per_source for w in ws]
         scores = self.score_pairs(flat)
@@ -109,6 +110,8 @@ class NLIVerifier:
             best_windows.append(ws[i])
             e, c = float(sc[:, 0].max()), float(sc[:, 1].max())
             detail["per_source"].append({"entail": round(e, 4), "contradict": round(c, 4)})
+            if with_windows:
+                detail["per_source"][-1]["window"] = ws[i]
             best_e, best_c = max(best_e, e), max(best_c, c)
         if len(best_windows) > 1:
             joint = self.score_pairs([(" ".join(best_windows), claim)])[0]

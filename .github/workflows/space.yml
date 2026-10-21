@@ -1,0 +1,32 @@
+name: Sync Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+    paths: ["src/**", "runs/**", "space/**", "Dockerfile", "pyproject.toml", "uv.lock"]
+  workflow_dispatch:
+
+concurrency:
+  group: space
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_SPACE: ${{ vars.HF_SPACE || 'ARslan-Ahamd/provenance-segment' }}
+    steps:
+      - name: Skip without a token
+        if: env.HF_TOKEN == ''
+        run: echo "::notice::HF_TOKEN secret not set; Space not synced."
+      - uses: actions/checkout@v4
+        if: env.HF_TOKEN != ''
+      - uses: astral-sh/setup-uv@v6
+        if: env.HF_TOKEN != ''
+      - name: Deploy
+        if: env.HF_TOKEN != ''
+        run: |
+          uv tool install huggingface_hub
+          hf auth whoami
+          python3 scripts/deploy_space.py --space "$HF_SPACE"
